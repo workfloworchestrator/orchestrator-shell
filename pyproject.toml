@@ -1,0 +1,72 @@
+[tool.black]
+line-length = 120
+target-version = ["py312", "py310"]
+exclude = '''
+(
+  /(
+      \.eggs         # exclude a few common directories in the
+    | \.git          # root of the project
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | venv
+    | src
+  )/
+)
+'''
+
+[tool.ruff]
+lint.exclude = [
+    ".git",
+    ".cache",
+    ".eggs",
+    "__pycache__",
+    "venv",
+    ".venv",
+    "src",
+]
+lint.ignore = [
+    "ANN101",
+    "ANN102",
+    "D100",
+    "D104",
+    "T201",
+]
+line-length = 120
+lint.select = [
+    "ANN",
+    "ARG",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "I",
+    "N",
+    "PGH",
+    "PTH",
+    "RET",
+    "S",
+    "T",
+    "W",
+    "Q",
+]
+target-version = "py312"
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.lint.per-file-ignores]
+"crm/api/*" = ["B008"]
+"test/*" = ["S101"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.isort]
+known-first-party=["nwastdlib", "oauth2_lib"]
+
+[tool.ruff.lint.mccabe]
+# Explicitly set default to 7, so we can later lower this threshold once all 6+ issues are solved.
+max-complexity = 7
