@@ -47,6 +47,7 @@ lint.select = [
     "PGH",
     "PTH",
     "RET",
+    "RUF",
     "S",
     "T",
     "W",
