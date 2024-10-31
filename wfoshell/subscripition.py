@@ -62,6 +62,8 @@ def subscription_select(args: list[str]) -> None:
         print(f"selected subscription index not between 0 and {number_of_subscriptions - 1}")
     else:
         state.selected_subscription = state.subscriptions[selected]
+        state.selected_product_block = None
+        state.selected_resource_type = None
         print(tabulate(state_summary(), tablefmt="plain"))
 
 

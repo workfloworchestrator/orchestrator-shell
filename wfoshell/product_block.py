@@ -69,6 +69,7 @@ def product_block_select(args: list[str]) -> None:
         print(f"selected product_block index not between 0 and {number_of_product_blocks - 1}")
     else:
         state.selected_product_block = state.product_blocks[selected]
+        state.selected_resource_type = None
         print(tabulate(state_summary(), tablefmt="plain"))
 
 

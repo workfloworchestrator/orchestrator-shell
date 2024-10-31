@@ -117,6 +117,7 @@ class WFOshell(Cmd):
 
     #
     # 'resource_type' command
+    #
     def help_resource_type(self) -> None:
         """Help text for 'resource_type' command."""
         print(f"subscription [{'|'.join(resource_type_arguments())}]")
