@@ -11,6 +11,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+import re
+
 from orchestrator.db import SubscriptionInstanceTable
 from tabulate import tabulate
 
@@ -20,6 +22,15 @@ from wfoshell.state import state, state_summary
 def product_block_arguments() -> list[str]:
     """List of possible 'product_block' subcommands."""
     return ["list", "search", "select", "details"]
+
+
+def output_product_block_list() -> None:
+    """Output indexed list of product blocks stored in state."""
+    details = [
+        (product_block.product_block.name, product_block.subscription_instance_id)
+        for product_block in state.product_blocks
+    ]
+    print(tabulate(details, tablefmt="plain", disable_numparse=True, showindex=True))
 
 
 def product_block_list(args: list[str]) -> None:
@@ -39,11 +50,7 @@ def product_block_list(args: list[str]) -> None:
             ).all(),
             key=lambda subscription_instance: subscription_instance.product_block.name,
         )
-        subscription_instance_details = [
-            (product_block.product_block.name, product_block.subscription_instance_id)
-            for product_block in state.product_blocks
-        ]
-        print(tabulate(subscription_instance_details, tablefmt="plain", disable_numparse=True, showindex=True))
+        output_product_block_list()
 
 
 def product_block_select(args: list[str]) -> None:
@@ -65,13 +72,26 @@ def product_block_select(args: list[str]) -> None:
         print(tabulate(state_summary(), tablefmt="plain"))
 
 
-def product_block_search(args: list[str]) -> None:  # noqa: ARG001
+def product_block_search(args: list[str]) -> None:
     """Product block 'search' subcommand.
 
     Find product blocks on the selected subscription whose name matches the supplied search string.
     Add the matching list of product blocks to the state, so it can be referenced by the 'select' subcommand.
     """
-    print("product_block search not implemented yet")
+    if len(args) != 2:
+        print("specify search string")
+    else:
+        pattern = re.compile(args[1], flags=re.IGNORECASE)
+        state.product_blocks = sorted(
+            filter(
+                lambda product_block: pattern.search(product_block.product_block.name),
+                SubscriptionInstanceTable.query.filter(
+                    SubscriptionInstanceTable.subscription_id == state.selected_subscription.subscription_id,
+                ).all(),
+            ),
+            key=lambda subscription_instance: subscription_instance.product_block.name,
+        )
+        output_product_block_list()
 
 
 def details(product_block: SubscriptionInstanceTable) -> list[tuple[str, str]]:

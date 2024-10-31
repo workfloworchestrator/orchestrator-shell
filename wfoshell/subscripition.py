@@ -11,6 +11,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+import re
+
 from orchestrator.db import SubscriptionTable
 from tabulate import tabulate
 
@@ -22,7 +24,13 @@ def subscription_arguments() -> list[str]:
     return ["list", "search", "select", "details"]
 
 
-def subscription_list(args: list[str]) -> None:  # noqa: ARG001
+def output_subscription_list() -> None:
+    """Output indexed list of subscriptions stored in state."""
+    details = [(subscription.description, subscription.subscription_id) for subscription in state.subscriptions]
+    print(tabulate(details, tablefmt="plain", disable_numparse=True, showindex=True))
+
+
+def subscription_list(args: list[str]) -> None:
     """Subscription 'list' subcommand.
 
     List all possible subscriptions stored in the database.
@@ -35,8 +43,7 @@ def subscription_list(args: list[str]) -> None:  # noqa: ARG001
             SubscriptionTable.query.all(),
             key=lambda subscription: subscription.description,
         )
-        details = [(subscription.description, subscription.subscription_id) for subscription in state.subscriptions]
-        print(tabulate(details, tablefmt="plain", disable_numparse=True, showindex=True))
+        output_subscription_list()
 
 
 def subscription_select(args: list[str]) -> None:
@@ -58,13 +65,24 @@ def subscription_select(args: list[str]) -> None:
         print(tabulate(state_summary(), tablefmt="plain"))
 
 
-def subscription_search(args: list[str]) -> None:  # noqa: ARG001
+def subscription_search(args: list[str]) -> None:
     """Subscription 'search' subcommand.
 
     Find subscriptions stored in the database whose description matches the supplied search string.
     Add the matching list of subscriptions to the state, so it can be referenced by the 'select' subcommand.
     """
-    print("subscription search not implemented yet")
+    if len(args) != 2:
+        print("specify search string")
+    else:
+        pattern = re.compile(args[1], flags=re.IGNORECASE)
+        state.subscriptions = sorted(
+            filter(
+                lambda subscription: pattern.search(subscription.description),
+                SubscriptionTable.query.all(),
+            ),
+            key=lambda subscription: subscription.description,
+        )
+        output_subscription_list()
 
 
 def details(subscription: SubscriptionTable) -> list[tuple[str, str]]:

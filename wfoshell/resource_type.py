@@ -11,6 +11,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+import re
+
 from orchestrator.db import (
     SubscriptionInstanceValueTable,
     db,
@@ -27,6 +29,19 @@ logger = get_logger(__name__)
 def resource_type_arguments() -> list[str]:
     """List of possible 'resource_type' subcommands."""
     return ["list", "search", "select", "details", "update"]
+
+
+def output_resource_types_list() -> None:
+    """Output indexed list of resource types stored in state."""
+    subscription_instance_value_details = [
+        (
+            subscription_instance_value.resource_type.resource_type,
+            subscription_instance_value.value,
+            subscription_instance_value.subscription_instance_value_id,
+        )
+        for subscription_instance_value in state.resource_types
+    ]
+    print(tabulate(subscription_instance_value_details, tablefmt="plain", disable_numparse=True, showindex=True))
 
 
 def resource_type_list(args: list[str]) -> None:
@@ -47,15 +62,7 @@ def resource_type_list(args: list[str]) -> None:
             ).all(),
             key=lambda subscription_instance_value: subscription_instance_value.resource_type.resource_type,
         )
-        subscription_instance_value_details = [
-            (
-                subscription_instance_value.resource_type.resource_type,
-                subscription_instance_value.value,
-                subscription_instance_value.subscription_instance_value_id,
-            )
-            for subscription_instance_value in state.resource_types
-        ]
-        print(tabulate(subscription_instance_value_details, tablefmt="plain", disable_numparse=True, showindex=True))
+    output_resource_types_list()
 
 
 def resource_type_select(args: list[str]) -> None:
@@ -77,13 +84,27 @@ def resource_type_select(args: list[str]) -> None:
         print(tabulate(state_summary(), tablefmt="plain"))
 
 
-def resource_type_search(args: list[str]) -> None:  # noqa: ARG001
+def resource_type_search(args: list[str]) -> None:
     """Resource type 'search' subcommand.
 
     Find resource types on the selected product block whose name matches the supplied search string.
     Add the matching list of resource types to the state, so it can be referenced by the 'select' subcommand.
     """
-    print("resource_type search not implemented yet")
+    if len(args) != 2:
+        print("specify search string")
+    else:
+        pattern = re.compile(args[1], flags=re.IGNORECASE)
+        state.resource_types = sorted(
+            filter(
+                lambda resource_type: pattern.search(resource_type.resource_type.resource_type),
+                SubscriptionInstanceValueTable.query.filter(
+                    SubscriptionInstanceValueTable.subscription_instance_id
+                    == state.selected_product_block.subscription_instance_id,
+                ).all(),
+            ),
+            key=lambda subscription_instance_value: subscription_instance_value.resource_type.resource_type,
+        )
+        output_resource_types_list()
 
 
 def details(resource_type: SubscriptionInstanceValueTable) -> list[tuple[str, str]]:
