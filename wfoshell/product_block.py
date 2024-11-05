@@ -19,80 +19,36 @@ from tabulate import tabulate
 from wfoshell.state import state, state_summary
 
 
-def product_block_arguments() -> list[str]:
-    """List of possible 'product_block' subcommands."""
-    return ["list", "search", "select", "details"]
+def format_table(product_blocks: list[SubscriptionInstanceTable]) -> str:
+    """Return indexed table of product blocks."""
+    return tabulate(
+        [
+            (product_block.product_block.name, product_block.subscription_instance_id)
+            for product_block in product_blocks
+        ],
+        tablefmt="plain",
+        disable_numparse=True,
+        showindex=True,
+    )
 
 
-def output_product_block_list() -> None:
-    """Output indexed list of product blocks stored in state."""
-    details = [
-        (product_block.product_block.name, product_block.subscription_instance_id)
-        for product_block in state.product_blocks
-    ]
-    print(tabulate(details, tablefmt="plain", disable_numparse=True, showindex=True))
+def query_db(regular_expression: str = ".*") -> list[SubscriptionInstanceTable]:
+    """Get list of filtered product blocks of the select subscription from the database.
 
-
-def product_block_list(args: list[str]) -> None:
-    """Product block 'list' subcommand.
-
-    List the product blocks of the selected subscription.
-    Add the list of product blocks to the state, so it can be referenced by the 'select' subcommand.
+    Return a sorted and filtered list of all product blocks of the selected subscription from the database, and
+    add this list to the state, so it can be referenced by other subcommands.
     """
-    if len(args) != 1:
-        print("subcommand does not take parameters")
-    elif not state.selected_subscription:
-        print("first select a subscription")
-    else:
-        state.product_blocks = sorted(
+    pattern = re.compile(regular_expression, flags=re.IGNORECASE)
+    state.product_blocks = sorted(
+        filter(
+            lambda product_block: pattern.search(product_block.product_block.name),
             SubscriptionInstanceTable.query.filter(
                 SubscriptionInstanceTable.subscription_id == state.selected_subscription.subscription_id,
             ).all(),
-            key=lambda subscription_instance: subscription_instance.product_block.name,
-        )
-        output_product_block_list()
-
-
-def product_block_select(args: list[str]) -> None:
-    """Product block 'select' subcommand.
-
-    Select a specific product block after listing or searching product blocks.
-    Add the selected product block to the state, so it can be referenced by the 'resource_type' command.
-    """
-    if len(args) != 2:
-        print("specify product_block index")
-    elif not args[1].isdecimal():
-        print(f"'{args[1]}' is not an decimal")
-    elif not (number_of_product_blocks := len(state.product_blocks)):
-        print("list or search for product_blocks first")
-    elif (selected := int(args[1])) >= number_of_product_blocks:
-        print(f"selected product_block index not between 0 and {number_of_product_blocks - 1}")
-    else:
-        state.selected_product_block = state.product_blocks[selected]
-        state.selected_resource_type = None
-        print(tabulate(state_summary(), tablefmt="plain"))
-
-
-def product_block_search(args: list[str]) -> None:
-    """Product block 'search' subcommand.
-
-    Find product blocks on the selected subscription whose name matches the supplied search string.
-    Add the matching list of product blocks to the state, so it can be referenced by the 'select' subcommand.
-    """
-    if len(args) != 2:
-        print("specify search string")
-    else:
-        pattern = re.compile(args[1], flags=re.IGNORECASE)
-        state.product_blocks = sorted(
-            filter(
-                lambda product_block: pattern.search(product_block.product_block.name),
-                SubscriptionInstanceTable.query.filter(
-                    SubscriptionInstanceTable.subscription_id == state.selected_subscription.subscription_id,
-                ).all(),
-            ),
-            key=lambda subscription_instance: subscription_instance.product_block.name,
-        )
-        output_product_block_list()
+        ),
+        key=lambda subscription_instance: subscription_instance.product_block.name,
+    )
+    return state.product_blocks
 
 
 def details(product_block: SubscriptionInstanceTable) -> list[tuple[str, str]]:
@@ -106,14 +62,42 @@ def details(product_block: SubscriptionInstanceTable) -> list[tuple[str, str]]:
     ]
 
 
-def product_block_details(args: list[str]) -> None:
+def product_block_list() -> str:
+    """Product block 'list' subcommand.
+
+    List the product blocks of the selected subscription.
+    Add the list of product blocks to the state, so it can be referenced by the 'select' subcommand.
+    Return a tabulated and index list of product blocks for the selected subscription.
+    """
+    return format_table(query_db())
+
+
+def product_block_search(regular_expression: str) -> str:
+    """Product block 'search' subcommand.
+
+    Find product blocks on the selected subscription whose name matches the supplied search string.
+    Add the matching list of product blocks to the state, so it can be referenced by the 'select' subcommand.
+    Return a tabulated and indexed list of product blocks for the selected subscription.
+    """
+    return format_table(query_db(regular_expression=regular_expression))
+
+
+def product_block_select(index: int) -> str:
+    """Product block 'select' subcommand.
+
+    Select a specific product block after listing or searching product blocks.
+    Add the selected product block to the state, so it can be referenced by the 'resource_type' command.
+    Return a tabulated state summary.
+    """
+    state.selected_product_block = state.product_blocks[index]
+    state.selected_resource_type = None
+    return tabulate(state_summary(), tablefmt="plain")
+
+
+def product_block_details() -> str:
     """Product block 'details' subcommand.
 
     Show details of the selected product block.
+    Return the tabulated details of the selected product block.
     """
-    if len(args) != 1:
-        print("subcommand does not take parameters")
-    elif not state.selected_product_block:
-        print("first select a product block")
-    else:
-        print(tabulate(details(state.selected_product_block), tablefmt="plain"))
+    return tabulate(details(state.selected_product_block), tablefmt="plain")

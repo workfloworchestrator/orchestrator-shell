@@ -19,72 +19,31 @@ from tabulate import tabulate
 from wfoshell.state import state, state_summary
 
 
-def subscription_arguments() -> list[str]:
-    """List of possible 'subscription' subcommands."""
-    return ["list", "search", "select", "details"]
+def format_table(subscriptions: list[SubscriptionTable]) -> str:
+    """Return indexed table of subscriptions."""
+    return tabulate(
+        [(subscription.description, subscription.subscription_id) for subscription in subscriptions],
+        tablefmt="plain",
+        disable_numparse=True,
+        showindex=True,
+    )
 
 
-def output_subscription_list() -> None:
-    """Output indexed list of subscriptions stored in state."""
-    details = [(subscription.description, subscription.subscription_id) for subscription in state.subscriptions]
-    print(tabulate(details, tablefmt="plain", disable_numparse=True, showindex=True))
+def query_db(regular_expression: str = ".*") -> list[SubscriptionTable]:
+    """Get list of filtered subscriptions from the database.
 
-
-def subscription_list(args: list[str]) -> None:
-    """Subscription 'list' subcommand.
-
-    List all possible subscriptions stored in the database.
-    Add the list of subscriptions to the state, so it can be referenced by the 'select' subcommand.
+    Return a sorted and filtered list of all subscriptions from the database, and
+    add this list to the state, so it can be referenced by other subcommands.
     """
-    if len(args) != 1:
-        print("subcommand does not take parameters")
-    else:
-        state.subscriptions = sorted(
+    pattern = re.compile(regular_expression, flags=re.IGNORECASE)
+    state.subscriptions = sorted(
+        filter(
+            lambda subscription: pattern.search(subscription.description),
             SubscriptionTable.query.all(),
-            key=lambda subscription: subscription.description,
-        )
-        output_subscription_list()
-
-
-def subscription_select(args: list[str]) -> None:
-    """Subscription 'select' subcommand.
-
-    Select a specific subscription after listing or searching subscriptions.
-    Add the selected subscription to the state, so it can be referenced by the 'product_block' command.
-    """
-    if len(args) != 2:
-        print("specify subscription index")
-    elif not args[1].isdecimal():
-        print(f"'{args[1]}' is not an decimal")
-    elif not (number_of_subscriptions := len(state.subscriptions)):
-        print("list or search for subscriptions first")
-    elif (selected := int(args[1])) >= number_of_subscriptions:
-        print(f"selected subscription index not between 0 and {number_of_subscriptions - 1}")
-    else:
-        state.selected_subscription = state.subscriptions[selected]
-        state.selected_product_block = None
-        state.selected_resource_type = None
-        print(tabulate(state_summary(), tablefmt="plain"))
-
-
-def subscription_search(args: list[str]) -> None:
-    """Subscription 'search' subcommand.
-
-    Find subscriptions stored in the database whose description matches the supplied search string.
-    Add the matching list of subscriptions to the state, so it can be referenced by the 'select' subcommand.
-    """
-    if len(args) != 2:
-        print("specify search string")
-    else:
-        pattern = re.compile(args[1], flags=re.IGNORECASE)
-        state.subscriptions = sorted(
-            filter(
-                lambda subscription: pattern.search(subscription.description),
-                SubscriptionTable.query.all(),
-            ),
-            key=lambda subscription: subscription.description,
-        )
-        output_subscription_list()
+        ),
+        key=lambda subscription: subscription.description,
+    )
+    return state.subscriptions
 
 
 def details(subscription: SubscriptionTable) -> list[tuple[str, str]]:
@@ -102,14 +61,44 @@ def details(subscription: SubscriptionTable) -> list[tuple[str, str]]:
     ]
 
 
-def subscription_details(args: list[str]) -> None:
+def subscription_list() -> str:
+    """Subscription 'list' subcommand.
+
+    List all possible subscriptions stored in the database.
+    Return a tabulated and indexed subscription list.
+    """
+    return format_table(query_db())
+
+
+def subscription_search(regular_expression: str) -> str:
+    """Subscription 'search' subcommand.
+
+    Find subscriptions stored in the database whose description matches the supplied search string.
+    Add the matching list of subscriptions to the state, so it can be referenced by the 'select' subcommand.
+    Return a tabulated and indexed subscription list.
+    """
+    return format_table(
+        query_db(regular_expression=regular_expression),
+    )
+
+
+def subscription_select(index: int) -> str:
+    """Subscription 'select' subcommand.
+
+    Select a specific subscription after listing or searching subscriptions.
+    Add the selected subscription to the state, so it can be referenced by the 'product_block' command.
+    Return a tabulated state summary.
+    """
+    state.selected_subscription = state.subscriptions[index]
+    state.selected_product_block = None
+    state.selected_resource_type = None
+    return tabulate(state_summary(), tablefmt="plain")
+
+
+def subscription_details() -> str:
     """Subscription 'details' subcommand.
 
     Show details of the selected subscription.
+    Return the tabulated details of the selected subscription.
     """
-    if len(args) != 1:
-        print("subcommand does not take parameters")
-    elif not state.selected_subscription:
-        print("first select a subscription")
-    else:
-        print(tabulate(details(state.selected_subscription), tablefmt="plain"))
+    return tabulate(details(state.selected_subscription), tablefmt="plain")

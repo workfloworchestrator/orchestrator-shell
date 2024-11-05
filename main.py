@@ -11,41 +11,16 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from cmd import Cmd
-from readline import read_history_file, set_history_length, write_history_file
+from argparse import Namespace
 
+from cmd2 import Cmd, Cmd2ArgumentParser, with_argparser
 from orchestrator.db import init_database
-from tabulate import tabulate
 
-from wfoshell.product_block import (
-    product_block_arguments,
-    product_block_details,  # noqa: F401
-    product_block_list,  # noqa: F401
-    product_block_search,  # noqa: F401
-    product_block_select,  # noqa: F401
-)
-from wfoshell.resource_type import (
-    resource_type_arguments,
-    resource_type_details,  # noqa: F401
-    resource_type_list,  # noqa: F401
-    resource_type_search,  # noqa: F401
-    resource_type_select,  # noqa: F401
-    resource_type_update,  # noqa: F401
-)
+import wfoshell.product_block
+import wfoshell.resource_type
+import wfoshell.subscripition
 from wfoshell.settings import settings
-from wfoshell.state import state_summary
-from wfoshell.subscripition import (
-    subscription_arguments,
-    subscription_details,  # noqa: F401
-    subscription_list,  # noqa: F401
-    subscription_search,  # noqa: F401
-    subscription_select,  # noqa: F401
-)
-
-
-def complete(commands: list[str], text: str) -> list[str]:
-    """Return list of commands that start with text."""
-    return [command for command in commands if command.startswith(text)]
+from wfoshell.state import state
 
 
 class WFOshell(Cmd):
@@ -55,83 +30,179 @@ class WFOshell(Cmd):
 
     def __init__(self) -> None:
         """WFO shell initialisation."""
-        super().__init__()
+        super().__init__(persistent_history_file=settings.WFOSHELL_HISTFILE)
         self.prompt = "(wfo) "
         init_database(settings)  # type: ignore[arg-type]
 
-    def preloop(self) -> None:
-        """Load history before command loop starts."""
-        if settings.WFOSHELL_HISTFILE.exists():
-            read_history_file(settings.WFOSHELL_HISTFILE)
-
-    def emptyline(self) -> bool:
-        """Show state summary (instead of repeating last command)."""
-        print(tabulate(state_summary(), tablefmt="plain"))
-        return False
-
     def postloop(self) -> None:
-        """Save history after command loop finishes."""
-        set_history_length(settings.WFOSHELL_HISTFILE_SIZE)
-        write_history_file(settings.WFOSHELL_HISTFILE)
+        """Executed after the command loop ends."""
+        self.history.truncate(max_length=settings.WFOSHELL_HISTFILE_SIZE)
 
-    def do_exit(self, arg: str) -> bool:  # noqa: ARG002
-        """Exit the WFO shell."""
-        print("exiting WFO shell ...")
-        return True
+    # subcommand functions for the subscription command
+    def subscription_list(self, args: Namespace) -> None:  # noqa: ARG002
+        """List subcommand of subscription command."""
+        self.poutput(wfoshell.subscripition.subscription_list())
 
-    #
-    # 'subscription' command
-    #
-    def help_subscription(self) -> None:
-        """Help text for 'subscription' command."""
-        print(f"subscription [{'|'.join(subscription_arguments())}]")
+    def subscription_search(self, args: Namespace) -> None:
+        """Search subcommand of subscription command."""
+        self.poutput(wfoshell.subscripition.subscription_search(args.regular_expression))
 
-    def complete_subscription(self, text: str, line: str, begidx: int, endidx: int) -> list[str]:  # noqa: ARG002
-        """Return a list of possible completions for 'subscription' subcommands."""
-        return complete(subscription_arguments(), text)
-
-    def do_subscription(self, arg: str) -> None:
-        """Call 'subscription' subcommand implementation function."""
-        if len(args := arg.split()) and args[0] in subscription_arguments():
-            globals()["subscription_" + args[0]](args)
+    def subscription_select(self, args: Namespace) -> None:
+        """Select subcommand of subscription command."""
+        if not (number_of_subscriptions := len(state.subscriptions)):
+            self.pwarning("list or search for subscriptions first")
+        elif not 0 <= args.index < number_of_subscriptions:
+            self.pwarning(f"selected subscription index not between 0 and {number_of_subscriptions - 1}")
         else:
-            self.help_subscription()
+            self.poutput(wfoshell.subscripition.subscription_select(args.index))
 
-    #
-    # 'product_block' command
-    #
-    def help_product_block(self) -> None:
-        """Help text for 'product_block' command."""
-        print(f"subscription [{'|'.join(product_block_arguments())}]")
-
-    def complete_product_block(self, text: str, line: str, begidx: int, endidx: int) -> list[str]:  # noqa: ARG002
-        """Return a list of possible completions for 'product_block' subcommands."""
-        return complete(product_block_arguments(), text)
-
-    def do_product_block(self, arg: str) -> None:
-        """Call 'product_block' subcommand implementation function."""
-        if len(args := arg.split()) and args[0] in product_block_arguments():
-            globals()["product_block_" + args[0]](args)
+    def subscription_details(self, args: Namespace) -> None:  # noqa: ARG002
+        """Details subcommand of subscription command."""
+        if not state.selected_subscription:
+            self.pwarning("first select a subscription")
         else:
-            self.help_product_block()
+            self.poutput(wfoshell.subscripition.subscription_details())
 
-    #
-    # 'resource_type' command
-    #
-    def help_resource_type(self) -> None:
-        """Help text for 'resource_type' command."""
-        print(f"subscription [{'|'.join(resource_type_arguments())}]")
+    # subscription (sub)commands argument parsers
+    s_parser = Cmd2ArgumentParser()
+    s_subparser = s_parser.add_subparsers(title="subscription subcommands")
+    s_list_parser = s_subparser.add_parser("list")
+    s_list_parser.set_defaults(func=subscription_list)
+    s_search_parser = s_subparser.add_parser("search")
+    s_search_parser.add_argument("regular_expression", type=str, help="match description on regular expression")
+    s_search_parser.set_defaults(func=subscription_search)
+    s_select_parser = s_subparser.add_parser("select")
+    s_select_parser.add_argument("index", type=int, help="select by index number")
+    s_select_parser.set_defaults(func=subscription_select)
+    s_details_parser = s_subparser.add_parser("details")
+    s_details_parser.set_defaults(func=subscription_details)
 
-    def complete_resource_type(self, text: str, line: str, begidx: int, endidx: int) -> list[str]:  # noqa: ARG002
-        """Return a list of possible completions for 'resource_type' subcommands."""
-        return complete(resource_type_arguments(), text)
-
-    def do_resource_type(self, arg: str) -> None:
-        """Call 'resource_type' subcommand implementation function."""
-        if len(args := arg.split()) and args[0] in resource_type_arguments():
-            globals()["resource_type_" + args[0]](args)
+    # subscription command
+    @with_argparser(s_parser)
+    def do_subscription(self, args: Namespace) -> None:
+        """Subscription related commands."""
+        if func := getattr(args, "func", None):
+            func(self, args)
         else:
-            self.help_resource_type()
+            self.do_help("subscription")
+
+    # subcommand functions for the product_block command
+    def product_block_list(self, args: Namespace) -> None:  # noqa: ARG002
+        """List subcommand of product_block command."""
+        if not state.selected_subscription:
+            self.pwarning("first select a subscription")
+        else:
+            self.poutput(wfoshell.product_block.product_block_list())
+
+    def product_block_search(self, args: Namespace) -> None:
+        """Search subcommand of product_block command."""
+        if not state.selected_subscription:
+            self.pwarning("first select a subscription")
+        else:
+            self.poutput(wfoshell.product_block.product_block_search(args.regular_expression))
+
+    def product_block_select(self, args: Namespace) -> None:
+        """Select subcommand of product_block command."""
+        if not (number_of_product_blocks := len(state.product_blocks)):
+            self.pwarning("list or search for product_blocks first")
+        elif not 0 <= args.index < number_of_product_blocks:
+            self.pwarning(f"selected product_block index not between 0 and {number_of_product_blocks - 1}")
+        else:
+            self.poutput(wfoshell.product_block.product_block_select(args.index))
+
+    def product_block_details(self, args: Namespace) -> None:  # noqa: ARG002
+        """Details subcommand of product_block command."""
+        if not state.selected_product_block:
+            self.pwarning("first select a product_block")
+        else:
+            self.poutput(wfoshell.product_block.product_block_details())
+
+    # product_block (sub)commands argument parsers
+    pb_parser = Cmd2ArgumentParser()
+    pb_subparser = pb_parser.add_subparsers(title="product_block subcommands")
+    pb_list_parser = pb_subparser.add_parser("list")
+    pb_list_parser.set_defaults(func=product_block_list)
+    pb_search_parser = pb_subparser.add_parser("search")
+    pb_search_parser.add_argument("regular_expression", type=str, help="match product block on regular expression")
+    pb_search_parser.set_defaults(func=product_block_search)
+    pb_select_parser = pb_subparser.add_parser("select")
+    pb_select_parser.add_argument("index", type=int, help="select by index number")
+    pb_select_parser.set_defaults(func=product_block_select)
+    pb_details_parser = pb_subparser.add_parser("details")
+    pb_details_parser.set_defaults(func=product_block_details)
+
+    # product_block command
+    @with_argparser(pb_parser)
+    def do_product_block(self, args: Namespace) -> None:
+        """Product_block related commands."""
+        if func := getattr(args, "func", None):
+            func(self, args)
+        else:
+            self.do_help("product_block")
+
+    # subcommand functions for the resource_type command
+    def resource_type_list(self, args: Namespace) -> None:  # noqa: ARG002
+        """List subcommand of resource_type command."""
+        if not state.selected_product_block:
+            self.pwarning("first select a product block")
+        else:
+            self.poutput(wfoshell.resource_type.resource_type_list())
+
+    def resource_type_search(self, args: Namespace) -> None:
+        """Search subcommand of resource_type command."""
+        if not state.selected_product_block:
+            self.pwarning("first select a product block")
+        else:
+            self.poutput(wfoshell.resource_type.resource_type_search(args.regular_expression))
+
+    def resource_type_select(self, args: Namespace) -> None:
+        """Select subcommand of resource_type command."""
+        if not (number_of_resource_types := len(state.resource_types)):
+            self.pwarning("list or search for resource_types first")
+        elif not 0 <= args.index < number_of_resource_types:
+            self.pwarning(f"selected resource_type index not between 0 and {number_of_resource_types - 1}")
+        else:
+            self.poutput(wfoshell.resource_type.resource_type_select(args.index))
+
+    def resource_type_details(self, args: Namespace) -> None:  # noqa: ARG002
+        """Details subcommand of resource_type command."""
+        if not state.selected_resource_type:
+            self.pwarning("first select a resource_type")
+        else:
+            self.poutput(wfoshell.resource_type.resource_type_details())
+
+    def resource_type_update(self, args: Namespace) -> None:
+        """Details subcommand of resource_type command."""
+        if not state.selected_resource_type:
+            self.pwarning("first select a resource_type")
+        else:
+            self.poutput(wfoshell.resource_type.resource_type_update(args.new_value))
+
+    # resource_type (sub)commands argument parsers
+    rt_parser = Cmd2ArgumentParser()
+    rt_subparser = rt_parser.add_subparsers(title="resource_type subcommands")
+    rt_list_parser = rt_subparser.add_parser("list")
+    rt_list_parser.set_defaults(func=resource_type_list)
+    rt_search_parser = rt_subparser.add_parser("search")
+    rt_search_parser.add_argument("regular_expression", type=str, help="match resource type on regular expression")
+    rt_search_parser.set_defaults(func=resource_type_search)
+    rt_select_parser = rt_subparser.add_parser("select")
+    rt_select_parser.add_argument("index", type=int, help="select by index number")
+    rt_select_parser.set_defaults(func=resource_type_select)
+    rt_details_parser = rt_subparser.add_parser("details")
+    rt_details_parser.set_defaults(func=resource_type_details)
+    rt_update_parser = rt_subparser.add_parser("update")
+    rt_update_parser.add_argument("new_value", type=str, help="new value for selected resource type")
+    rt_update_parser.set_defaults(func=resource_type_update)
+
+    # resource_type command
+    @with_argparser(rt_parser)
+    def do_resource_type(self, args: Namespace) -> None:
+        """resource_type related commands."""
+        if func := getattr(args, "func", None):
+            func(self, args)
+        else:
+            self.do_help("resource_type")
 
 
 if __name__ == "__main__":

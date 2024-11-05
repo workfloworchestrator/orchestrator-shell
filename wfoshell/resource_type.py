@@ -26,85 +26,41 @@ from wfoshell.state import state, state_summary
 logger = get_logger(__name__)
 
 
-def resource_type_arguments() -> list[str]:
-    """List of possible 'resource_type' subcommands."""
-    return ["list", "search", "select", "details", "update"]
-
-
-def output_resource_types_list() -> None:
+def format_table(resource_types: list[SubscriptionInstanceValueTable]) -> str:
     """Output indexed list of resource types stored in state."""
-    subscription_instance_value_details = [
-        (
-            subscription_instance_value.resource_type.resource_type,
-            subscription_instance_value.value,
-            subscription_instance_value.subscription_instance_value_id,
-        )
-        for subscription_instance_value in state.resource_types
-    ]
-    print(tabulate(subscription_instance_value_details, tablefmt="plain", disable_numparse=True, showindex=True))
+    return tabulate(
+        [
+            (
+                subscription_instance_value.resource_type.resource_type,
+                subscription_instance_value.value,
+                subscription_instance_value.subscription_instance_value_id,
+            )
+            for subscription_instance_value in resource_types
+        ],
+        tablefmt="plain",
+        disable_numparse=True,
+        showindex=True,
+    )
 
 
-def resource_type_list(args: list[str]) -> None:
-    """Resource type 'list' subcommand.
+def query_db(regular_expression: str = ".*") -> list[SubscriptionInstanceValueTable]:
+    """Get list of filtered resource types of the select product block from the database.
 
-    List the resource types of the selected product block.
-    Add the list of resource types to the state, so it can be referenced by the 'select' subcommand.
+    Return a sorted and filtered list of all resource types of the selected product block from the database, and
+    add this list to the state, so it can be referenced by other subcommands.
     """
-    if len(args) != 1:
-        print("subcommand does not take parameters")
-    elif not state.selected_product_block:
-        print("first select a product block")
-    else:
-        state.resource_types = sorted(
+    pattern = re.compile(regular_expression, flags=re.IGNORECASE)
+    state.resource_types = sorted(
+        filter(
+            lambda resource_type: pattern.search(resource_type.resource_type.resource_type),
             SubscriptionInstanceValueTable.query.filter(
                 SubscriptionInstanceValueTable.subscription_instance_id
                 == state.selected_product_block.subscription_instance_id,
             ).all(),
-            key=lambda subscription_instance_value: subscription_instance_value.resource_type.resource_type,
-        )
-    output_resource_types_list()
-
-
-def resource_type_select(args: list[str]) -> None:
-    """Resource type 'select' subcommand.
-
-    Select a specific resource type after listing or searching resource types.
-    Add the selected resource type to the state, so it can be referenced by the 'details' and 'update' subcommands.
-    """
-    if len(args) != 2:
-        print("specify resource_type index")
-    elif not args[1].isdecimal():
-        print(f"'{args[1]}' is not an decimal")
-    elif not (number_of_resource_types := len(state.resource_types)):
-        print("list or search for resource_types first")
-    elif (selected := int(args[1])) >= number_of_resource_types:
-        print(f"selected resource_type index not between 0 and {number_of_resource_types - 1}")
-    else:
-        state.selected_resource_type = state.resource_types[selected]
-        print(tabulate(state_summary(), tablefmt="plain"))
-
-
-def resource_type_search(args: list[str]) -> None:
-    """Resource type 'search' subcommand.
-
-    Find resource types on the selected product block whose name matches the supplied search string.
-    Add the matching list of resource types to the state, so it can be referenced by the 'select' subcommand.
-    """
-    if len(args) != 2:
-        print("specify search string")
-    else:
-        pattern = re.compile(args[1], flags=re.IGNORECASE)
-        state.resource_types = sorted(
-            filter(
-                lambda resource_type: pattern.search(resource_type.resource_type.resource_type),
-                SubscriptionInstanceValueTable.query.filter(
-                    SubscriptionInstanceValueTable.subscription_instance_id
-                    == state.selected_product_block.subscription_instance_id,
-                ).all(),
-            ),
-            key=lambda subscription_instance_value: subscription_instance_value.resource_type.resource_type,
-        )
-        output_resource_types_list()
+        ),
+        key=lambda subscription_instance_value: subscription_instance_value.resource_type.resource_type,
+    )
+    return state.resource_types
 
 
 def details(resource_type: SubscriptionInstanceValueTable) -> list[tuple[str, str]]:
@@ -126,29 +82,50 @@ def details(resource_type: SubscriptionInstanceValueTable) -> list[tuple[str, st
     ]
 
 
-def resource_type_details(args: list[str]) -> None:
+def resource_type_list() -> str:
+    """Resource type 'list' subcommand.
+
+    List the resource types of the selected product block.
+    Add the list of resource types to the state, so it can be referenced by the 'select' subcommand.
+    Return a tabulated and index list of resource types for the selected product block.
+    """
+    return format_table(query_db())
+
+
+def resource_type_search(regular_expression: str) -> str:
+    """Resource type 'search' subcommand.
+
+    Find resource types on the selected product block whose name matches the supplied search string.
+    Add the matching list of resource types to the state, so it can be referenced by the 'select' subcommand.
+    Return a tabulated and indexed list of resource type for the selected product block.
+    """
+    return format_table(query_db(regular_expression=regular_expression))
+
+
+def resource_type_select(index: int) -> str:
+    """Resource type 'select' subcommand.
+
+    Select a specific resource type after listing or searching resource types.
+    Add the selected resource type to the state, so it can be referenced by the 'details' and 'update' subcommands.
+    Return a tabulated state summary.
+    """
+    state.selected_resource_type = state.resource_types[index]
+    return tabulate(state_summary(), tablefmt="plain")
+
+
+def resource_type_details() -> str:
     """Resource type 'details' subcommand.
 
     Show details of the selected resource type.
+    Return the tabulated details of the selected resource type.
     """
-    if len(args) != 1:
-        print("subcommand does not take parameters")
-    elif not state.selected_resource_type:
-        print("first select a resource type")
-    else:
-        print(tabulate(details(state.selected_resource_type), tablefmt="plain"))
+    return tabulate(details(state.selected_resource_type), tablefmt="plain")
 
 
-def resource_type_update(args: list[str]) -> None:
+def resource_type_update(new_value: str) -> None:
     """Resource type 'update' subcommand.
 
-    Ask for a new value and update the selected resource type in the database.
+    Update the selected resource type with new_value in the database.
     """
-    if len(args) != 1:
-        print("subcommand does not take parameters")
-    elif not state.selected_resource_type:
-        print("first select a resource type")
-    else:
-        new_value = input(f"new '{state.selected_resource_type.resource_type.resource_type}' value> ")
-        with transactional(db, logger):
-            state.selected_resource_type.value = new_value
+    with transactional(db, logger):
+        state.selected_resource_type.value = new_value
