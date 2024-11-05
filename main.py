@@ -13,7 +13,7 @@
 
 from argparse import Namespace
 
-from cmd2 import Cmd, Cmd2ArgumentParser, with_argparser
+from cmd2 import Cmd, Cmd2ArgumentParser, Statement, with_argparser
 from orchestrator.db import init_database
 
 import wfoshell.product_block
@@ -30,13 +30,17 @@ class WFOshell(Cmd):
 
     def __init__(self) -> None:
         """WFO shell initialisation."""
-        super().__init__(persistent_history_file=settings.WFOSHELL_HISTFILE)
+        super().__init__(
+            persistent_history_file=settings.WFOSHELL_HISTFILE,
+            persistent_history_length=settings.WFOSHELL_HISTFILE_SIZE,
+        )
         self.prompt = "(wfo) "
+        self.hidden_commands.extend(["alias", "edit", "macro", "run_pyscript", "run_script", "shell", "shortcuts"])
         init_database(settings)  # type: ignore[arg-type]
 
-    def postloop(self) -> None:
-        """Executed after the command loop ends."""
-        self.history.truncate(max_length=settings.WFOSHELL_HISTFILE_SIZE)
+    def do_exit(self, line: Statement) -> bool:  # noqa: ARG002
+        """Exit the application."""
+        return True
 
     # subcommand functions for the subscription command
     def subscription_list(self, args: Namespace) -> None:  # noqa: ARG002
