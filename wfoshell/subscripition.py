@@ -12,11 +12,15 @@
 #  limitations under the License.
 
 import re
+from datetime import datetime
 
-from orchestrator.db import SubscriptionTable
+from orchestrator.db import SubscriptionTable, db, transactional
+from structlog import get_logger
 from tabulate import tabulate
 
 from wfoshell.state import state, state_summary
+
+logger = get_logger(__name__)
 
 
 def format_table(subscriptions: list[SubscriptionTable]) -> str:
@@ -46,8 +50,10 @@ def query_db(regular_expression: str = ".*") -> list[SubscriptionTable]:
     return state.subscriptions
 
 
-def details(subscription: SubscriptionTable) -> list[tuple[str, str]]:
+def details(subscription: SubscriptionTable | None) -> list[tuple[str, str]]:
     """Generate list of tuples with subscription detail information."""
+    if subscription is None:
+        return []
     return [
         ("description", subscription.description),
         ("subscription_id", subscription.subscription_id),
@@ -111,3 +117,13 @@ def subscription_details() -> str:
     Return the tabulated details of the selected subscription.
     """
     return tabulate(details(state.selected_subscription), tablefmt="plain")
+
+
+def subscription_update(field: str, new_value: str | bool | datetime | None) -> None:
+    """Subscription 'update' subcommand.
+
+    Update subscription `field` with `new_value`.
+    Return a tabulated state summary.
+    """
+    with transactional(db, logger):
+        setattr(state.selected_subscription, field, new_value)

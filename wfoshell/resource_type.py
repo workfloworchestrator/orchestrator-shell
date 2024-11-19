@@ -50,20 +50,23 @@ def query_db(regular_expression: str = ".*") -> list[SubscriptionInstanceValueTa
     add this list to the state, so it can be referenced by other subcommands.
     """
     pattern = re.compile(regular_expression, flags=re.IGNORECASE)
-    state.resource_types = sorted(
-        filter(
-            lambda resource_type: pattern.search(resource_type.resource_type.resource_type),
-            SubscriptionInstanceValueTable.query.filter(
-                SubscriptionInstanceValueTable.subscription_instance_id
-                == state.selected_product_block.subscription_instance_id,
-            ).all(),
-        ),
-        key=lambda subscription_instance_value: subscription_instance_value.resource_type.resource_type,
-    )
+    if state.selected_product_block is None:
+        state.resource_types = []
+    else:
+        state.resource_types = sorted(
+            filter(
+                lambda resource_type: pattern.search(resource_type.resource_type.resource_type),
+                SubscriptionInstanceValueTable.query.filter(
+                    SubscriptionInstanceValueTable.subscription_instance_id
+                    == state.selected_product_block.subscription_instance_id,
+                ).all(),
+            ),
+            key=lambda subscription_instance_value: subscription_instance_value.resource_type.resource_type,
+        )
     return state.resource_types
 
 
-def details(resource_type: SubscriptionInstanceValueTable) -> list[tuple[str, str]]:
+def details(resource_type: SubscriptionInstanceValueTable | None) -> list[tuple[str, str]]:
     """Generate list of tuples with resource type detail information."""
     # Use this for unset optional resource types?
     #
@@ -73,6 +76,8 @@ def details(resource_type: SubscriptionInstanceValueTable) -> list[tuple[str, st
     #         | {v.resource_type.resource_type: v.value for v in subscription_instance.values}
     #     ).items()
     # )
+    if resource_type is None:
+        return []
     return [
         ("subscription_instance_value_id", resource_type.subscription_instance_value_id),
         ("subscription_instance_id", resource_type.subscription_instance_id),
@@ -128,4 +133,5 @@ def resource_type_update(new_value: str) -> None:
     Update the selected resource type with new_value in the database.
     """
     with transactional(db, logger):
-        state.selected_resource_type.value = new_value
+        if state.selected_resource_type is not None:
+            state.selected_resource_type.value = new_value

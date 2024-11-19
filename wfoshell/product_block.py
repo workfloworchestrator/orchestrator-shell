@@ -39,20 +39,25 @@ def query_db(regular_expression: str = ".*") -> list[SubscriptionInstanceTable]:
     add this list to the state, so it can be referenced by other subcommands.
     """
     pattern = re.compile(regular_expression, flags=re.IGNORECASE)
-    state.product_blocks = sorted(
-        filter(
-            lambda product_block: pattern.search(product_block.product_block.name),
-            SubscriptionInstanceTable.query.filter(
-                SubscriptionInstanceTable.subscription_id == state.selected_subscription.subscription_id,
-            ).all(),
-        ),
-        key=lambda subscription_instance: subscription_instance.product_block.name,
-    )
+    if state.selected_subscription is None:
+        state.product_blocks = []
+    else:
+        state.product_blocks = sorted(
+            filter(
+                lambda product_block: pattern.search(product_block.product_block.name),
+                SubscriptionInstanceTable.query.filter(
+                    SubscriptionInstanceTable.subscription_id == state.selected_subscription.subscription_id,
+                ).all(),
+            ),
+            key=lambda subscription_instance: subscription_instance.product_block.name,
+        )
     return state.product_blocks
 
 
-def details(product_block: SubscriptionInstanceTable) -> list[tuple[str, str]]:
+def details(product_block: SubscriptionInstanceTable | None) -> list[tuple[str, str]]:
     """Generate list of tuples with product block detail information."""
+    if product_block is None:
+        return []
     return [
         ("subscription_instance_id", product_block.subscription_instance_id),
         ("subscription_id", product_block.subscription_id),

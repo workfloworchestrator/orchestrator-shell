@@ -12,6 +12,7 @@
 #  limitations under the License.
 
 from argparse import Namespace
+from datetime import datetime
 
 from cmd2 import Cmd, Cmd2ArgumentParser, Statement, with_argparser
 from orchestrator.db import init_database
@@ -31,7 +32,7 @@ class WFOshell(Cmd):
     def __init__(self) -> None:
         """WFO shell initialisation."""
         super().__init__(
-            persistent_history_file=settings.WFOSHELL_HISTFILE,
+            persistent_history_file=str(settings.WFOSHELL_HISTFILE),
             persistent_history_length=settings.WFOSHELL_HISTFILE_SIZE,
         )
         self.prompt = "(wfo) "
@@ -67,6 +68,32 @@ class WFOshell(Cmd):
         else:
             self.poutput(wfoshell.subscripition.subscription_details())
 
+    def subscription_update(self, args: Namespace) -> None:  # noqa: C901
+        """Update subcommand of subscription command."""
+        if not state.selected_subscription:
+            self.pwarning("first select a subscription")
+            return
+        if args.field in ["insync"]:
+            if args.new_value.lower() in ["y", "yes", "true"]:
+                args.new_value = True
+            elif args.new_value.lower() in ["n", "no", "false"]:
+                args.new_value = False
+            else:
+                self.pwarning("expected y, yes, true, n, no or false")
+                return
+        if args.field in ["start_date", "end_date"]:
+            if args.new_value == "":
+                args.new_value = None
+            else:
+                try:
+                    args.new_value = datetime.fromisoformat(args.new_value)
+                except ValueError as value_error:
+                    self.pwarning(str(value_error))
+                    return
+                if args.new_value.tzinfo is None:
+                    args.new_value = args.new_value.astimezone()
+        wfoshell.subscripition.subscription_update(args.field, args.new_value)
+
     # subscription (sub)commands argument parsers
     s_parser = Cmd2ArgumentParser()
     s_subparser = s_parser.add_subparsers(title="subscription subcommands")
@@ -80,6 +107,22 @@ class WFOshell(Cmd):
     s_select_parser.set_defaults(func=subscription_select)
     s_details_parser = s_subparser.add_parser("details")
     s_details_parser.set_defaults(func=subscription_details)
+    s_update_parser = s_subparser.add_parser("update")
+    s_update_parser.add_argument(
+        "field",
+        choices=[
+            "description",
+            "status",
+            "customer_id",
+            "insync",
+            "start_date",
+            "end_date",
+            "note",
+        ],
+        help="subscription field",
+    )
+    s_update_parser.add_argument("new_value", type=str, help="new value for selected subscription field")
+    s_update_parser.set_defaults(func=subscription_update)
 
     # subscription command
     @with_argparser(s_parser)
@@ -176,11 +219,11 @@ class WFOshell(Cmd):
             self.poutput(wfoshell.resource_type.resource_type_details())
 
     def resource_type_update(self, args: Namespace) -> None:
-        """Details subcommand of resource_type command."""
+        """Update subcommand of resource_type command."""
         if not state.selected_resource_type:
             self.pwarning("first select a resource_type")
         else:
-            self.poutput(wfoshell.resource_type.resource_type_update(args.new_value))
+            wfoshell.resource_type.resource_type_update(args.new_value)
 
     # resource_type (sub)commands argument parsers
     rt_parser = Cmd2ArgumentParser()
