@@ -58,6 +58,15 @@ def details(subscription: SubscriptionTable) -> list[tuple[str, str]]:
         ("start_date", subscription.start_date),
         ("end_date", subscription.end_date),
         ("note", subscription.note),
+        (
+            "product block(s)",
+            "\n".join(
+                [
+                    f"{product_block.product_block.name} ({product_block.subscription_instance_id}"
+                    for product_block in subscription.instances
+                ]
+            ),
+        ),
     ]
 
 
