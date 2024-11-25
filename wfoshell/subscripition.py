@@ -18,13 +18,15 @@ from orchestrator.db import SubscriptionTable, db, transactional
 from structlog import get_logger
 from tabulate import tabulate
 
-from wfoshell.state import state, state_summary
+import wfoshell.resource_type
+from wfoshell.product_block import product_block_table
+from wfoshell.state import state, state_summary, selected_product_blocks, selected_subscription
 
 logger = get_logger(__name__)
 
 
-def format_table(subscriptions: list[SubscriptionTable]) -> str:
-    """Return indexed table of subscriptions."""
+def indexed_subscription_list(subscriptions: list[SubscriptionTable]) -> str:
+    """Return tabulated indexed list of subscriptions."""
     return tabulate(
         [(subscription.description, subscription.subscription_id) for subscription in subscriptions],
         tablefmt="plain",
@@ -50,7 +52,7 @@ def query_db(regular_expression: str = ".*") -> list[SubscriptionTable]:
     return state.subscriptions
 
 
-def details(subscription: SubscriptionTable | None) -> list[tuple[str, str]]:
+def details(subscription) -> list[tuple[str, str]]:
     """Generate list of tuples with subscription detail information."""
     if subscription is None:
         return []
@@ -64,25 +66,13 @@ def details(subscription: SubscriptionTable | None) -> list[tuple[str, str]]:
         ("start_date", subscription.start_date),
         ("end_date", subscription.end_date),
         ("note", subscription.note),
-        (
-            "product block(s)",
-            "\n".join(
-                [
-                    f"{product_block.product_block.name} ({product_block.subscription_instance_id}"
-                    for product_block in subscription.instances
-                ]
-            ),
-        ),
+        ("product block(s)", product_block_table(selected_product_blocks())),
     ]
 
 
 def subscription_list() -> str:
-    """Subscription 'list' subcommand.
-
-    List all possible subscriptions stored in the database.
-    Return a tabulated and indexed subscription list.
-    """
-    return format_table(query_db())
+    """Return a tabulated and indexed list of all subscriptions from the database."""
+    return indexed_subscription_list(query_db())
 
 
 def subscription_search(regular_expression: str) -> str:
@@ -92,7 +82,7 @@ def subscription_search(regular_expression: str) -> str:
     Add the matching list of subscriptions to the state, so it can be referenced by the 'select' subcommand.
     Return a tabulated and indexed subscription list.
     """
-    return format_table(
+    return indexed_subscription_list(
         query_db(regular_expression=regular_expression),
     )
 
@@ -104,9 +94,9 @@ def subscription_select(index: int) -> str:
     Add the selected subscription to the state, so it can be referenced by the 'product_block' command.
     Return a tabulated state summary.
     """
-    state.selected_subscription = state.subscriptions[index]
-    state.selected_product_block = None
-    state.selected_resource_type = None
+    state.subscription_index = index
+    state.product_block_index = None
+    state.resource_type_index = None
     return tabulate(state_summary(), tablefmt="plain")
 
 
@@ -116,7 +106,7 @@ def subscription_details() -> str:
     Show details of the selected subscription.
     Return the tabulated details of the selected subscription.
     """
-    return tabulate(details(state.selected_subscription), tablefmt="plain")
+    return tabulate(details(selected_subscription()), tablefmt="plain")
 
 
 def subscription_update(field: str, new_value: str | bool | datetime | None) -> None:
@@ -126,4 +116,4 @@ def subscription_update(field: str, new_value: str | bool | datetime | None) -> 
     Return a tabulated state summary.
     """
     with transactional(db, logger):
-        setattr(state.selected_subscription, field, new_value)
+        setattr(selected_subscription(), field, new_value)

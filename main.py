@@ -19,6 +19,7 @@ from orchestrator.db import init_database
 
 import wfoshell.product_block
 import wfoshell.resource_type
+import wfoshell.state
 import wfoshell.subscripition
 from wfoshell.settings import settings
 from wfoshell.state import state
@@ -63,14 +64,14 @@ class WFOshell(Cmd):
 
     def subscription_details(self, args: Namespace) -> None:  # noqa: ARG002
         """Details subcommand of subscription command."""
-        if not state.selected_subscription:
+        if state.subscription_index is None:
             self.pwarning("first select a subscription")
         else:
             self.poutput(wfoshell.subscripition.subscription_details())
 
     def subscription_update(self, args: Namespace) -> None:  # noqa: C901
         """Update subcommand of subscription command."""
-        if not state.selected_subscription:
+        if state.subscription_index is None:
             self.pwarning("first select a subscription")
             return
         if args.field in ["insync"]:
@@ -136,21 +137,14 @@ class WFOshell(Cmd):
     # subcommand functions for the product_block command
     def product_block_list(self, args: Namespace) -> None:  # noqa: ARG002
         """List subcommand of product_block command."""
-        if not state.selected_subscription:
+        if state.subscription_index is None:
             self.pwarning("first select a subscription")
         else:
             self.poutput(wfoshell.product_block.product_block_list())
 
-    def product_block_search(self, args: Namespace) -> None:
-        """Search subcommand of product_block command."""
-        if not state.selected_subscription:
-            self.pwarning("first select a subscription")
-        else:
-            self.poutput(wfoshell.product_block.product_block_search(args.regular_expression))
-
     def product_block_select(self, args: Namespace) -> None:
         """Select subcommand of product_block command."""
-        if not (number_of_product_blocks := len(state.product_blocks)):
+        if not (number_of_product_blocks := len(wfoshell.state.selected_product_blocks())):
             self.pwarning("list or search for product_blocks first")
         elif not 0 <= args.index < number_of_product_blocks:
             self.pwarning(f"selected product_block index not between 0 and {number_of_product_blocks - 1}")
@@ -159,7 +153,7 @@ class WFOshell(Cmd):
 
     def product_block_details(self, args: Namespace) -> None:  # noqa: ARG002
         """Details subcommand of product_block command."""
-        if not state.selected_product_block:
+        if state.product_block_index is None:
             self.pwarning("first select a product_block")
         else:
             self.poutput(wfoshell.product_block.product_block_details())
@@ -169,9 +163,6 @@ class WFOshell(Cmd):
     pb_subparser = pb_parser.add_subparsers(title="product_block subcommands")
     pb_list_parser = pb_subparser.add_parser("list")
     pb_list_parser.set_defaults(func=product_block_list)
-    pb_search_parser = pb_subparser.add_parser("search")
-    pb_search_parser.add_argument("regular_expression", type=str, help="match product block on regular expression")
-    pb_search_parser.set_defaults(func=product_block_search)
     pb_select_parser = pb_subparser.add_parser("select")
     pb_select_parser.add_argument("index", type=int, help="select by index number")
     pb_select_parser.set_defaults(func=product_block_select)
@@ -190,21 +181,14 @@ class WFOshell(Cmd):
     # subcommand functions for the resource_type command
     def resource_type_list(self, args: Namespace) -> None:  # noqa: ARG002
         """List subcommand of resource_type command."""
-        if not state.selected_product_block:
+        if state.product_block_index is None:
             self.pwarning("first select a product block")
         else:
             self.poutput(wfoshell.resource_type.resource_type_list())
 
-    def resource_type_search(self, args: Namespace) -> None:
-        """Search subcommand of resource_type command."""
-        if not state.selected_product_block:
-            self.pwarning("first select a product block")
-        else:
-            self.poutput(wfoshell.resource_type.resource_type_search(args.regular_expression))
-
     def resource_type_select(self, args: Namespace) -> None:
         """Select subcommand of resource_type command."""
-        if not (number_of_resource_types := len(state.resource_types)):
+        if not (number_of_resource_types := len(wfoshell.state.selected_resource_types())):
             self.pwarning("list or search for resource_types first")
         elif not 0 <= args.index < number_of_resource_types:
             self.pwarning(f"selected resource_type index not between 0 and {number_of_resource_types - 1}")
@@ -213,14 +197,14 @@ class WFOshell(Cmd):
 
     def resource_type_details(self, args: Namespace) -> None:  # noqa: ARG002
         """Details subcommand of resource_type command."""
-        if not state.selected_resource_type:
+        if state.resource_type_index is None:
             self.pwarning("first select a resource_type")
         else:
             self.poutput(wfoshell.resource_type.resource_type_details())
 
     def resource_type_update(self, args: Namespace) -> None:
         """Update subcommand of resource_type command."""
-        if not state.selected_resource_type:
+        if state.resource_type_index is None:
             self.pwarning("first select a resource_type")
         else:
             wfoshell.resource_type.resource_type_update(args.new_value)
@@ -230,9 +214,6 @@ class WFOshell(Cmd):
     rt_subparser = rt_parser.add_subparsers(title="resource_type subcommands")
     rt_list_parser = rt_subparser.add_parser("list")
     rt_list_parser.set_defaults(func=resource_type_list)
-    rt_search_parser = rt_subparser.add_parser("search")
-    rt_search_parser.add_argument("regular_expression", type=str, help="match resource type on regular expression")
-    rt_search_parser.set_defaults(func=resource_type_search)
     rt_select_parser = rt_subparser.add_parser("select")
     rt_select_parser.add_argument("index", type=int, help="select by index number")
     rt_select_parser.set_defaults(func=resource_type_select)
