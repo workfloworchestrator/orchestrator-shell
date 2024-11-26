@@ -11,18 +11,12 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-import re
 
-from orchestrator.db import (
-    SubscriptionInstanceValueTable,
-    db,
-    transactional,
-    SubscriptionInstanceTable,
-)
+from orchestrator.db import SubscriptionInstanceValueTable, db, transactional
 from structlog import get_logger
 from tabulate import tabulate
 
-from wfoshell.state import state, state_summary, selected_resource_types, selected_resource_type
+from wfoshell.state import state
 
 logger = get_logger(__name__)
 
@@ -40,7 +34,7 @@ def resource_type_table(resource_types: list[SubscriptionInstanceValueTable]) ->
 
 
 def details(resource_type: SubscriptionInstanceValueTable | None) -> list[tuple[str, str]]:
-    """Generate list of tuples with resource type detail information."""
+    """Return list of tuples with resource type detail information."""
     # Use this for unset optional resource types?
     #
     # resource_types = sorted(
@@ -61,40 +55,23 @@ def details(resource_type: SubscriptionInstanceValueTable | None) -> list[tuple[
 
 
 def resource_type_list() -> str:
-    """Resource type 'list' subcommand.
-
-    List the resource types of the selected product block.
-    Add the list of resource types to the state, so it can be referenced by the 'select' subcommand.
-    Return a tabulated and index list of resource types for the selected product block.
-    """
-    return resource_type_table(selected_resource_types())
+    """Implementation of the 'resource_type list' subcommand."""
+    return resource_type_table(state.selected_resource_types)
 
 
 def resource_type_select(index: int) -> str:
-    """Resource type 'select' subcommand.
-
-    Select a specific resource type after listing or searching resource types.
-    Add the selected resource type to the state, so it can be referenced by the 'details' and 'update' subcommands.
-    Return a tabulated state summary.
-    """
+    """Implementation of the 'resource_type select' subcommand."""
     state.resource_type_index = index
-    return tabulate(state_summary(), tablefmt="plain")
+    return tabulate(state.summary, tablefmt="plain")
 
 
 def resource_type_details() -> str:
-    """Resource type 'details' subcommand.
-
-    Show details of the selected resource type.
-    Return the tabulated details of the selected resource type.
-    """
-    return tabulate(details(selected_resource_type()), tablefmt="plain")
+    """Implementation of the 'resource_type details' subcommand."""
+    return tabulate(details(state.selected_resource_type), tablefmt="plain")
 
 
 def resource_type_update(new_value: str) -> None:
-    """Resource type 'update' subcommand.
-
-    Update the selected resource type with new_value in the database.
-    """
+    """Implementation of the 'resource_type update' subcommand."""
     with transactional(db, logger):
-        if selected_resource_type() is not None:
-            selected_resource_type().value = new_value
+        if state.selected_resource_type is not None:
+            state.selected_resource_type.value = new_value

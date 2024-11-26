@@ -18,9 +18,8 @@ from orchestrator.db import SubscriptionTable, db, transactional
 from structlog import get_logger
 from tabulate import tabulate
 
-import wfoshell.resource_type
 from wfoshell.product_block import product_block_table
-from wfoshell.state import state, state_summary, selected_product_blocks, selected_subscription
+from wfoshell.state import state
 
 logger = get_logger(__name__)
 
@@ -36,11 +35,7 @@ def indexed_subscription_list(subscriptions: list[SubscriptionTable]) -> str:
 
 
 def query_db(regular_expression: str = ".*") -> list[SubscriptionTable]:
-    """Get list of filtered subscriptions from the database.
-
-    Return a sorted and filtered list of all subscriptions from the database, and
-    add this list to the state, so it can be referenced by other subcommands.
-    """
+    """Return sorted and filtered list of subscriptions from the database and also store in the state."""
     pattern = re.compile(regular_expression, flags=re.IGNORECASE)
     state.subscriptions = sorted(
         filter(
@@ -52,10 +47,8 @@ def query_db(regular_expression: str = ".*") -> list[SubscriptionTable]:
     return state.subscriptions
 
 
-def details(subscription) -> list[tuple[str, str]]:
-    """Generate list of tuples with subscription detail information."""
-    if subscription is None:
-        return []
+def details(subscription: SubscriptionTable) -> list[tuple[str, str]]:
+    """Return list of tuples with subscription detail information."""
     return [
         ("description", subscription.description),
         ("subscription_id", subscription.subscription_id),
@@ -66,54 +59,36 @@ def details(subscription) -> list[tuple[str, str]]:
         ("start_date", subscription.start_date),
         ("end_date", subscription.end_date),
         ("note", subscription.note),
-        ("product block(s)", product_block_table(selected_product_blocks())),
+        ("product block(s)", product_block_table(state.selected_product_blocks)),
     ]
 
 
 def subscription_list() -> str:
-    """Return a tabulated and indexed list of all subscriptions from the database."""
+    """Return tabulated and indexed list of all subscriptions from the database."""
     return indexed_subscription_list(query_db())
 
 
 def subscription_search(regular_expression: str) -> str:
-    """Subscription 'search' subcommand.
-
-    Find subscriptions stored in the database whose description matches the supplied search string.
-    Add the matching list of subscriptions to the state, so it can be referenced by the 'select' subcommand.
-    Return a tabulated and indexed subscription list.
-    """
+    """Return a tabulated and indexed list of subscriptions matching regular_expression and also store in the state."""
     return indexed_subscription_list(
         query_db(regular_expression=regular_expression),
     )
 
 
 def subscription_select(index: int) -> str:
-    """Subscription 'select' subcommand.
-
-    Select a specific subscription after listing or searching subscriptions.
-    Add the selected subscription to the state, so it can be referenced by the 'product_block' command.
-    Return a tabulated state summary.
-    """
+    """Implementation of the 'subscription select' subcommand."""
     state.subscription_index = index
     state.product_block_index = None
     state.resource_type_index = None
-    return tabulate(state_summary(), tablefmt="plain")
+    return tabulate(state.summary, tablefmt="plain")
 
 
 def subscription_details() -> str:
-    """Subscription 'details' subcommand.
-
-    Show details of the selected subscription.
-    Return the tabulated details of the selected subscription.
-    """
-    return tabulate(details(selected_subscription()), tablefmt="plain")
+    """Implementation of the 'subscription details' subcommand."""
+    return tabulate(details(state.selected_subscription), tablefmt="plain")
 
 
 def subscription_update(field: str, new_value: str | bool | datetime | None) -> None:
-    """Subscription 'update' subcommand.
-
-    Update subscription `field` with `new_value`.
-    Return a tabulated state summary.
-    """
+    """Implementation of the 'subscription update' subcommand."""
     with transactional(db, logger):
-        setattr(selected_subscription(), field, new_value)
+        setattr(state.selected_subscription, field, new_value)

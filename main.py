@@ -144,7 +144,7 @@ class WFOshell(Cmd):
 
     def product_block_select(self, args: Namespace) -> None:
         """Select subcommand of product_block command."""
-        if not (number_of_product_blocks := len(wfoshell.state.selected_product_blocks())):
+        if not (number_of_product_blocks := len(state.selected_product_blocks)):
             self.pwarning("list or search for product_blocks first")
         elif not 0 <= args.index < number_of_product_blocks:
             self.pwarning(f"selected product_block index not between 0 and {number_of_product_blocks - 1}")
@@ -188,7 +188,7 @@ class WFOshell(Cmd):
 
     def resource_type_select(self, args: Namespace) -> None:
         """Select subcommand of resource_type command."""
-        if not (number_of_resource_types := len(wfoshell.state.selected_resource_types())):
+        if not (number_of_resource_types := len(state.selected_resource_types)):
             self.pwarning("list or search for resource_types first")
         elif not 0 <= args.index < number_of_resource_types:
             self.pwarning(f"selected resource_type index not between 0 and {number_of_resource_types - 1}")

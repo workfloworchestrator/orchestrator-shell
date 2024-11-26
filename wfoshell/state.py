@@ -21,82 +21,86 @@ class State:
     """State that is shared between the WFO shell commands."""
 
     subscriptions: list[SubscriptionTable] = field(default_factory=list)
-    # product_blocks: list[SubscriptionInstanceTable] = field(default_factory=list)
-    # resource_types: list[SubscriptionInstanceValueTable] = field(default_factory=list)
-    # selected_subscription: SubscriptionTable | None = None
-    # selected_product_block: SubscriptionInstanceTable | None = None
-    # selected_resource_type: SubscriptionInstanceValueTable | None = None
     subscription_index: int | None = None
     product_block_index: int | None = None
     resource_type_index: int | None = None
 
+    @property
+    def selected_subscription(self) -> SubscriptionTable:
+        """Return the subscription indexed by subscription_index."""
+        if self.subscription_index is not None:
+            return self.subscriptions[self.subscription_index]
+        raise IndexError("subscription_index not set")
 
-state = State()
-
-
-def state_summary() -> list[tuple[str, str, str]]:
-    """Generate a list of tuples with a summary of the subscription, product block and resource type state."""
-    if state.subscriptions[state.subscription_index]:
-        summary = [
+    @property
+    def selected_product_blocks(self) -> list[SubscriptionInstanceTable]:
+        """Return the list of product blocks for the subscription indexed by subscription_index."""
+        return (
             (
+                sorted(
+                    self.selected_subscription.instances,
+                    key=lambda subscription_instance: subscription_instance.product_block.name,
+                )
+            )
+            if self.subscription_index is not None
+            else []
+        )
+
+    @property
+    def selected_product_block(self) -> SubscriptionInstanceTable:
+        """Return the product block indexed by product_block_index."""
+        if self.product_block_index is not None:
+            return self.selected_product_blocks[self.product_block_index]
+        raise IndexError("product_block_index not set")
+
+    @property
+    def selected_resource_types(self) -> list[SubscriptionInstanceValueTable]:
+        """Return the list of resource types for the product block indexed by product_block_index."""
+        return (
+            sorted(
+                self.selected_product_block.values,
+                key=lambda subscription_instance_value: subscription_instance_value.resource_type.resource_type,
+            )
+            if self.product_block_index is not None
+            else []
+        )
+
+    @property
+    def selected_resource_type(self) -> SubscriptionInstanceValueTable:
+        """Return the resource type indexed by resource_type_index."""
+        if self.resource_type_index is not None:
+            return self.selected_resource_types[self.resource_type_index]
+        raise IndexError("resource_type_index not set")
+
+    @property
+    def summary(self) -> list[tuple[str, str, str]]:
+        """Generate a list of tuples with a summary of the subscription, product block and resource type state."""
+        summary = []
+        if self.subscription_index is not None:
+            summary.append(
                 (
                     "subscription",
-                    selected_subscription().description,
-                    selected_subscription().subscription_id,
+                    self.selected_subscription.description,
+                    self.selected_subscription.subscription_id,
                 )
-            ),
-        ]
-        if state.product_block_index is not None:
+            )
+        if self.product_block_index is not None:
             summary.append(
                 (
                     "product block",
-                    selected_product_block().product_block.name,
-                    selected_product_block().subscription_instance_id,
+                    self.selected_product_block.product_block.name,
+                    self.selected_product_block.subscription_instance_id,
                 ),
             )
-            if state.resource_type_index is not None:
-                summary.append(
-                    (
-                        "resource_type",
-                        selected_resource_type().resource_type.resource_type,
-                        selected_resource_type().subscription_instance_value_id,
-                    ),
-                )
-        return summary
-    return []
-
-
-def selected_subscription() -> SubscriptionTable | None:
-    return None if state.subscription_index is None else state.subscriptions[state.subscription_index]
-
-
-def selected_product_blocks() -> list[SubscriptionInstanceTable]:
-    return (
-        []
-        if state.subscription_index is None
-        else (
-            sorted(
-                selected_subscription().instances,
-                key=lambda subscription_instance: subscription_instance.product_block.name,
+        if self.resource_type_index is not None:
+            summary.append(
+                (
+                    "resource_type",
+                    self.selected_resource_type.resource_type.resource_type,
+                    self.selected_resource_type.subscription_instance_value_id,
+                ),
             )
-        )
-    )
+        return summary
 
 
-def selected_product_block() -> SubscriptionInstanceTable | None:
-    return None if state.product_block_index is None else selected_product_blocks()[state.product_block_index]
-
-
-def selected_resource_types() -> list[SubscriptionInstanceValueTable]:
-    return (
-        []
-        if state.product_block_index is None
-        else sorted(
-            selected_product_block().values,
-            key=lambda subscription_instance_value: subscription_instance_value.resource_type.resource_type,
-        )
-    )
-
-
-def selected_resource_type() -> SubscriptionInstanceValueTable | None:
-    return None if state.resource_type_index is None else selected_resource_types()[state.resource_type_index]
+state = State()
