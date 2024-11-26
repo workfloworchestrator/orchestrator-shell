@@ -158,6 +158,24 @@ class WFOshell(Cmd):
         else:
             self.poutput(wfoshell.product_block.product_block_details())
 
+    def product_block_depends_on(self, args: Namespace) -> None:
+        """Depends_on subcommand of product_block command."""
+        if state.product_block_index is None:
+            self.pwarning("first select a product block")
+        elif not 0 <= args.index < (number_of_depends_on := len(state.selected_product_block.depends_on)):
+            self.pwarning(f"selected product_block index not between 0 and {number_of_depends_on - 1}")
+        else:
+            self.poutput(wfoshell.product_block.product_block_depends_on(args.index))
+
+    def product_block_in_use_by(self, args: Namespace) -> None:
+        """In_use_by subcommand of product_block command."""
+        if state.product_block_index is None:
+            self.pwarning("first select a product block")
+        elif not 0 <= args.index < (number_of_in_use_by := len(state.selected_product_block.in_use_by)):
+            self.pwarning(f"selected product_block index not between 0 and {number_of_in_use_by - 1}")
+        else:
+            self.poutput(wfoshell.product_block.product_block_in_use_by(args.index))
+
     # product_block (sub)commands argument parsers
     pb_parser = Cmd2ArgumentParser()
     pb_subparser = pb_parser.add_subparsers(title="product_block subcommands")
@@ -168,6 +186,12 @@ class WFOshell(Cmd):
     pb_select_parser.set_defaults(func=product_block_select)
     pb_details_parser = pb_subparser.add_parser("details")
     pb_details_parser.set_defaults(func=product_block_details)
+    pb_depends_on_parser = pb_subparser.add_parser("depends_on")
+    pb_depends_on_parser.add_argument("index", type=int, help="select by index number")
+    pb_depends_on_parser.set_defaults(func=product_block_depends_on)
+    pb_is_use_by_parser = pb_subparser.add_parser("in_use_by")
+    pb_is_use_by_parser.add_argument("index", type=int, help="select by index number")
+    pb_is_use_by_parser.set_defaults(func=product_block_in_use_by)
 
     # product_block command
     @with_argparser(pb_parser)

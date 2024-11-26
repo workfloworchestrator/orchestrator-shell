@@ -69,3 +69,23 @@ def product_block_select(index: int) -> str:
 def product_block_details() -> str:
     """Implementation of the 'product_block details' subcommand."""
     return tabulate(details(state.selected_product_block), tablefmt="plain")
+
+
+def product_block_depends_on(index: int) -> str:
+    """Implementation of the 'product_block depends_on' subcommand."""
+    depends_on_product_block = state.selected_product_block.depends_on[index]
+    state.subscription_index = state.subscriptions.index(depends_on_product_block.subscription)
+    # note that the selected_product_blocks list below is of the subscription selected just above
+    state.product_block_index = state.selected_product_blocks.index(depends_on_product_block)
+    state.resource_type_index = None
+    return tabulate(state.summary, tablefmt="plain")
+
+
+def product_block_in_use_by(index: int) -> str:
+    """Implementation of the 'product_block in_use_by' subcommand."""
+    in_use_by_product_block = state.selected_product_block.in_use_by[index]
+    state.subscription_index = state.subscriptions.index(in_use_by_product_block.subscription)
+    # note that the selected_product_blocks list below is of the subscription selected just above
+    state.product_block_index = state.selected_product_blocks.index(in_use_by_product_block)
+    state.resource_type_index = None
+    return tabulate(state.summary, tablefmt="plain")
