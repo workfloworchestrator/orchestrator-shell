@@ -12,20 +12,20 @@
 #  limitations under the License.
 
 
+import tabulate
 from orchestrator.db import SubscriptionInstanceValueTable, db, transactional
 from structlog import get_logger
-from tabulate import tabulate
 
 from wfoshell.state import sorted_resource_types, state
 
 logger = get_logger(__name__)
 
 
-def resource_type_table(resource_types: list[SubscriptionInstanceValueTable]) -> str:
-    """Return indexed table of resource types."""
-    return tabulate(
+def resource_type_table(resource_types: list[SubscriptionInstanceValueTable], width: int = 0) -> str:
+    """Return indexed table of resource types, with name optionally aligned on width."""
+    return tabulate.tabulate(
         [
-            [resource_type.resource_type.resource_type, resource_type.value]
+            [resource_type.resource_type.resource_type.ljust(width), resource_type.value]
             for resource_type in sorted_resource_types(resource_types)
         ],
         tablefmt="plain",
@@ -47,11 +47,11 @@ def details(resource_type: SubscriptionInstanceValueTable | None) -> list[tuple[
     if resource_type is None:
         return []
     return [
+        ("resource_type", resource_type.resource_type.resource_type),
+        ("value", resource_type.value),
         ("subscription_instance_value_id", resource_type.subscription_instance_value_id),
         ("subscription_instance_id", resource_type.subscription_instance_id),
         ("resource_type_id", resource_type.resource_type_id),
-        ("resource_type", resource_type.resource_type.resource_type),
-        ("value", resource_type.value),
     ]
 
 
@@ -63,12 +63,12 @@ def resource_type_list() -> str:
 def resource_type_select(index: int) -> str:
     """Implementation of the 'resource_type select' subcommand."""
     state.resource_type_index = index
-    return tabulate(state.summary, tablefmt="plain")
+    return tabulate.tabulate(state.summary, tablefmt="plain")
 
 
 def resource_type_details() -> str:
     """Implementation of the 'resource_type details' subcommand."""
-    return tabulate(details(state.selected_resource_type), tablefmt="plain")
+    return tabulate.tabulate(details(state.selected_resource_type), tablefmt="plain")
 
 
 def resource_type_update(new_value: str) -> None:

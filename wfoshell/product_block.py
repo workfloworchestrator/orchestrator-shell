@@ -15,20 +15,20 @@
 from orchestrator.db import SubscriptionInstanceTable
 from tabulate import tabulate
 
-import wfoshell
-import wfoshell.state
+from wfoshell.resource_type import resource_type_table
 from wfoshell.state import state
 
 
 def product_block_table(product_blocks: list[SubscriptionInstanceTable]) -> str:
     """Return indexed table of product blocks."""
+    max_rt_width = max([len(rt.resource_type.resource_type) for pb in product_blocks for rt in pb.values])
     return tabulate(
         [
             [
                 tabulate(
                     [
                         ["name", product_block.product_block.name],
-                        ["resource types", wfoshell.resource_type.resource_type_table(product_block.values)],
+                        ["resource types", resource_type_table(product_block.values, max_rt_width)],
                     ],
                     tablefmt="plain",
                 )
@@ -44,13 +44,14 @@ def product_block_table(product_blocks: list[SubscriptionInstanceTable]) -> str:
 def details(product_block: SubscriptionInstanceTable) -> list[tuple[str, str]]:
     """Return list of tuples with product block detail information."""
     return [
+        ("name", product_block.product_block.name),
         ("subscription_instance_id", product_block.subscription_instance_id),
         ("subscription_id", product_block.subscription_id),
         ("product_block_id", product_block.product_block_id),
-        ("name", product_block.product_block.name),
         ("label", product_block.label),
-        ("depends_on", product_block_table(product_block.depends_on)),
-        ("in_use_by", product_block_table(product_block.in_use_by)),
+        ("resource types", resource_type_table(product_block.values)),
+        ("depends_on", product_block_table(product_block.depends_on) if product_block.depends_on else ""),
+        ("in_use_by", product_block_table(product_block.in_use_by) if product_block.in_use_by else ""),
     ]
 
 
