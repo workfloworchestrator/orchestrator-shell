@@ -55,7 +55,10 @@ class WFOshell(Cmd):
 
     def subscription_select(self, args: Namespace) -> None:
         """Select subcommand of subscription command."""
-        if not (number_of_subscriptions := len(state.subscriptions)):
+        number_of_subscriptions = (
+            len(state.filtered_subscriptions) if state.filtered_subscriptions is not None else len(state.subscriptions)
+        )
+        if not number_of_subscriptions:
             self.pwarning("list or search for subscriptions first")
         elif not 0 <= args.index < number_of_subscriptions:
             self.pwarning(f"selected subscription index not between 0 and {number_of_subscriptions - 1}")
@@ -162,7 +165,9 @@ class WFOshell(Cmd):
         """Depends_on subcommand of product_block command."""
         if state.product_block_index is None:
             self.pwarning("first select a product block")
-        elif not 0 <= args.index < (number_of_depends_on := len(state.selected_product_block.depends_on)):
+        elif not (number_of_depends_on := len(state.selected_product_block.depends_on)):
+            self.pwarning("no depend on product blocks")
+        elif not 0 <= args.index < number_of_depends_on:
             self.pwarning(f"selected product_block index not between 0 and {number_of_depends_on - 1}")
         else:
             self.poutput(wfoshell.product_block.product_block_depends_on(args.index))
@@ -171,7 +176,9 @@ class WFOshell(Cmd):
         """In_use_by subcommand of product_block command."""
         if state.product_block_index is None:
             self.pwarning("first select a product block")
-        elif not 0 <= args.index < (number_of_in_use_by := len(state.selected_product_block.in_use_by)):
+        elif not (number_of_in_use_by := len(state.selected_product_block.in_use_by)):
+            self.pwarning("no in use by product blocks")
+        elif not 0 <= args.index < number_of_in_use_by:
             self.pwarning(f"selected product_block index not between 0 and {number_of_in_use_by - 1}")
         else:
             self.poutput(wfoshell.product_block.product_block_in_use_by(args.index))
