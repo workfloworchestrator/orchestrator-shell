@@ -16,7 +16,7 @@ from orchestrator.db import SubscriptionInstanceValueTable, db, transactional
 from structlog import get_logger
 from tabulate import tabulate
 
-from wfoshell.state import state
+from wfoshell.state import sorted_resource_types, state
 
 logger = get_logger(__name__)
 
@@ -25,11 +25,12 @@ def resource_type_table(resource_types: list[SubscriptionInstanceValueTable]) ->
     """Return indexed table of resource types."""
     return tabulate(
         [
-            [index, resource_type.resource_type.resource_type, resource_type.value]
-            for index, resource_type in enumerate(resource_types)
+            [resource_type.resource_type.resource_type, resource_type.value]
+            for resource_type in sorted_resource_types(resource_types)
         ],
         tablefmt="plain",
         disable_numparse=True,
+        showindex=True,
     )
 
 

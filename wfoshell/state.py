@@ -34,16 +34,9 @@ class State:
 
     @property
     def selected_product_blocks(self) -> list[SubscriptionInstanceTable]:
-        """Return the list of product blocks for the subscription indexed by subscription_index."""
+        """Return sorted list of product blocks for the subscription indexed by subscription_index."""
         return (
-            (
-                sorted(
-                    self.selected_subscription.instances,
-                    key=lambda subscription_instance: subscription_instance.product_block.name,
-                )
-            )
-            if self.subscription_index is not None
-            else []
+            (sorted_product_blocks(self.selected_subscription.instances)) if self.subscription_index is not None else []
         )
 
     @property
@@ -55,15 +48,8 @@ class State:
 
     @property
     def selected_resource_types(self) -> list[SubscriptionInstanceValueTable]:
-        """Return the list of resource types for the product block indexed by product_block_index."""
-        return (
-            sorted(
-                self.selected_product_block.values,
-                key=lambda subscription_instance_value: subscription_instance_value.resource_type.resource_type,
-            )
-            if self.product_block_index is not None
-            else []
-        )
+        """Return sorted list of resource types for the product block indexed by product_block_index."""
+        return sorted_resource_types(self.selected_product_block.values) if self.product_block_index is not None else []
 
     @property
     def selected_resource_type(self) -> SubscriptionInstanceValueTable:
@@ -104,3 +90,24 @@ class State:
 
 
 state = State()
+
+
+def sorted_subscriptions(subscriptions: list[SubscriptionTable]) -> list[SubscriptionTable]:
+    """Sort subscriptions on description."""
+    return sorted(subscriptions, key=lambda subscription: subscription.description)
+
+
+def sorted_product_blocks(product_blocks: list[SubscriptionInstanceTable]) -> list[SubscriptionInstanceTable]:
+    """Sort product blocks on product block name."""
+    return sorted(
+        product_blocks,
+        key=lambda subscription_instance: subscription_instance.product_block.name,
+    )
+
+
+def sorted_resource_types(resource_types: list[SubscriptionInstanceValueTable]) -> list[SubscriptionInstanceValueTable]:
+    """Sort resource types on resource type name."""
+    return sorted(
+        resource_types,
+        key=lambda subscription_instance_value: subscription_instance_value.resource_type.resource_type,
+    )

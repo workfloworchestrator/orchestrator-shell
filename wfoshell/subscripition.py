@@ -19,7 +19,7 @@ from structlog import get_logger
 from tabulate import tabulate
 
 from wfoshell.product_block import product_block_table
-from wfoshell.state import state
+from wfoshell.state import sorted_subscriptions, state
 
 logger = get_logger(__name__)
 
@@ -37,12 +37,8 @@ def indexed_subscription_list(subscriptions: list[SubscriptionTable]) -> str:
 def query_db(regular_expression: str = ".*") -> list[SubscriptionTable]:
     """Return sorted and filtered list of subscriptions from the database and also store in the state."""
     pattern = re.compile(regular_expression, flags=re.IGNORECASE)
-    state.subscriptions = sorted(
-        filter(
-            lambda subscription: pattern.search(subscription.description),
-            SubscriptionTable.query.all(),
-        ),
-        key=lambda subscription: subscription.description,
+    state.subscriptions = sorted_subscriptions(
+        filter(lambda subscription: pattern.search(subscription.description), SubscriptionTable.query.all())  # type: ignore[arg-type]
     )
     return state.subscriptions
 
