@@ -21,6 +21,7 @@ class State:
     """State that is shared between the WFO shell commands."""
 
     subscriptions: list[SubscriptionTable] = field(default_factory=list)
+    filtered_subscriptions: list[SubscriptionTable] | None = None
     subscription_index: int | None = None
     product_block_index: int | None = None
     resource_type_index: int | None = None

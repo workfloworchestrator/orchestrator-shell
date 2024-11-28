@@ -34,13 +34,15 @@ def indexed_subscription_list(subscriptions: list[SubscriptionTable]) -> str:
     )
 
 
-def query_db(regular_expression: str = ".*") -> list[SubscriptionTable]:
-    """Return sorted and filtered list of subscriptions from the database and also store in the state."""
+def query_db() -> list[SubscriptionTable]:
+    """Return sorted and list of subscriptions from the database."""
+    return sorted_subscriptions(SubscriptionTable.query.all())
+
+
+def filtered_subscriptions(regular_expression: str, subscriptions: list[SubscriptionTable]) -> list[SubscriptionTable]:
+    """Return filtered list of subscriptions."""
     pattern = re.compile(regular_expression, flags=re.IGNORECASE)
-    state.subscriptions = sorted_subscriptions(
-        filter(lambda subscription: pattern.search(subscription.description), SubscriptionTable.query.all())  # type: ignore[arg-type]
-    )
-    return state.subscriptions
+    return list(filter(lambda subscription: pattern.search(subscription.description), subscriptions))
 
 
 def details(subscription: SubscriptionTable) -> list[tuple[str, str]]:
@@ -60,20 +62,25 @@ def details(subscription: SubscriptionTable) -> list[tuple[str, str]]:
 
 
 def subscription_list() -> str:
-    """Return tabulated and indexed list of all subscriptions from the database."""
-    return indexed_subscription_list(query_db())
+    """Add list of all subscriptions to the state and return this list tabulated and indexed."""
+    state.subscriptions = query_db()
+    state.filtered_subscriptions = None
+    return indexed_subscription_list(state.subscriptions)
 
 
 def subscription_search(regular_expression: str) -> str:
-    """Return a tabulated and indexed list of subscriptions matching regular_expression and also store in the state."""
-    return indexed_subscription_list(
-        query_db(regular_expression=regular_expression),
-    )
+    """Add list of filtered subscriptions to the state and return this list tabulated and indexed."""
+    state.subscriptions = query_db()
+    state.filtered_subscriptions = filtered_subscriptions(regular_expression, state.subscriptions)
+    return indexed_subscription_list(state.filtered_subscriptions)
 
 
 def subscription_select(index: int) -> str:
     """Implementation of the 'subscription select' subcommand."""
-    state.subscription_index = index
+    if state.filtered_subscriptions is None:
+        state.subscription_index = index
+    else:
+        state.subscription_index = state.subscriptions.index(state.filtered_subscriptions[index])
     state.product_block_index = None
     state.resource_type_index = None
     return tabulate(state.summary, tablefmt="plain")
