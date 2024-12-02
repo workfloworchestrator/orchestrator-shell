@@ -19,6 +19,7 @@ from structlog import get_logger
 from wfoshell.state import sorted_resource_types, state
 
 logger = get_logger(__name__)
+tabulate.PRESERVE_WHITESPACE = True
 
 
 def resource_type_table(resource_types: list[SubscriptionInstanceValueTable], width: int = 0) -> str:
