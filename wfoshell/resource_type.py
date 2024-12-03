@@ -26,7 +26,10 @@ def resource_type_table(resource_types: list[SubscriptionInstanceValueTable], wi
     """Return indexed table of resource types, with name optionally aligned on width."""
     return tabulate.tabulate(
         [
-            [resource_type.resource_type.resource_type.ljust(width), resource_type.value]
+            [
+                resource_type.resource_type.resource_type.ljust(width),
+                resource_type.value if resource_type.value is not None else "<unset resource type>",
+            ]
             for resource_type in sorted_resource_types(resource_types)
         ],
         tablefmt="plain",
@@ -37,14 +40,6 @@ def resource_type_table(resource_types: list[SubscriptionInstanceValueTable], wi
 
 def details(resource_type: SubscriptionInstanceValueTable | None) -> list[tuple[str, str]]:
     """Return list of tuples with resource type detail information."""
-    # Use this for unset optional resource types?
-    #
-    # resource_types = sorted(
-    #     (
-    #         {rt.resource_type: None for rt in subscription_instance.product_block.resource_types}
-    #         | {v.resource_type.resource_type: v.value for v in subscription_instance.values}
-    #     ).items()
-    # )
     if resource_type is None:
         return []
     return [
@@ -75,5 +70,13 @@ def resource_type_details() -> str:
 def resource_type_update(new_value: str) -> None:
     """Implementation of the 'resource_type update' subcommand."""
     with transactional(db, logger):
-        if state.selected_resource_type is not None:
+        if state.selected_resource_type.value is None:
+            # add previously unset resource type to list of product block values
+            state.selected_product_block.values.append(
+                SubscriptionInstanceValueTable(
+                    resource_type_id=state.selected_resource_type.resource_type.resource_type_id, value=new_value
+                )
+            )
+        else:
+            # otherwise just update the existing resource type value
             state.selected_resource_type.value = new_value

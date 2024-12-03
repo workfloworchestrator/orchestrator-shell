@@ -50,7 +50,11 @@ class State:
     @property
     def selected_resource_types(self) -> list[SubscriptionInstanceValueTable]:
         """Return sorted list of resource types for the product block indexed by product_block_index."""
-        return sorted_resource_types(self.selected_product_block.values) if self.product_block_index is not None else []
+        return (
+            sorted_resource_types(all_resource_types(self.selected_product_block))
+            if self.product_block_index is not None
+            else []
+        )
 
     @property
     def selected_resource_type(self) -> SubscriptionInstanceValueTable:
@@ -80,17 +84,33 @@ class State:
                 ),
             )
         if self.resource_type_index is not None:
+            rt = self.selected_resource_type
             summary.append(
                 (
                     "resource_type",
-                    self.selected_resource_type.resource_type.resource_type,
-                    self.selected_resource_type.subscription_instance_value_id,
+                    rt.resource_type.resource_type,
+                    rt.subscription_instance_value_id if rt.value is not None else "<unset resource type>",
                 ),
             )
         return summary
 
 
 state = State()
+
+
+def all_resource_types(product_block: SubscriptionInstanceTable) -> list[SubscriptionInstanceValueTable]:
+    """Add optional unset resource type(s) with value None to list of already set resource types."""
+    return list(
+        (
+            {
+                rt.resource_type: SubscriptionInstanceValueTable(
+                    resource_type_id=rt.resource_type_id, resource_type=rt, value=None
+                )
+                for rt in product_block.product_block.resource_types
+            }
+            | {v.resource_type.resource_type: v for v in product_block.values}
+        ).values()
+    )
 
 
 def sorted_subscriptions(subscriptions: list[SubscriptionTable]) -> list[SubscriptionTable]:
