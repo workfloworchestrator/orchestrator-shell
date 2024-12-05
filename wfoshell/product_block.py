@@ -41,18 +41,46 @@ def product_block_table(product_blocks: list[SubscriptionInstanceTable]) -> str:
     )
 
 
-def details(product_block: SubscriptionInstanceTable) -> list[tuple[str, str]]:
-    """Return list of tuples with product block detail information."""
+def details_product_block(product_block: SubscriptionInstanceTable) -> list[tuple[str, str]]:
+    """Return list of tuples with product block details only."""
     return [
         ("name", product_block.product_block.name),
         ("subscription_instance_id", product_block.subscription_instance_id),
         ("subscription_id", product_block.subscription_id),
         ("product_block_id", product_block.product_block_id),
         ("label", product_block.label),
+    ]
+
+
+def details_resource_types(product_block: SubscriptionInstanceTable) -> list[tuple[str, str]]:
+    """Return list of tuples with resource type details only."""
+    return [
         ("resource types", resource_type_table(all_resource_types(product_block))),
+    ]
+
+
+def details_depends_on(product_block: SubscriptionInstanceTable) -> list[tuple[str, str]]:
+    """Return list of tuples with depends on details only."""
+    return [
         ("depends_on", product_block_table(product_block.depends_on) if product_block.depends_on else ""),
+    ]
+
+
+def details_in_use_by(product_block: SubscriptionInstanceTable) -> list[tuple[str, str]]:
+    """Return list of tuples with in use by details only."""
+    return [
         ("in_use_by", product_block_table(product_block.in_use_by) if product_block.in_use_by else ""),
     ]
+
+
+def details_all(product_block: SubscriptionInstanceTable) -> list[tuple[str, str]]:
+    """Return list of tuples with all product block details."""
+    return (
+        details_product_block(product_block)
+        + details_resource_types(product_block)
+        + details_depends_on(product_block)
+        + details_in_use_by(product_block)
+    )
 
 
 def product_block_list() -> str:
@@ -67,9 +95,20 @@ def product_block_select(index: int) -> str:
     return tabulate(state.summary, tablefmt="plain")
 
 
-def product_block_details() -> str:
+def product_block_details(
+    product_block_only: bool, resource_types_only: bool, depends_on_only: bool, in_use_by_only: bool
+) -> str:
     """Implementation of the 'product_block details' subcommand."""
-    return tabulate(details(state.selected_product_block), tablefmt="plain")
+    if product_block_only:
+        return tabulate(details_product_block(state.selected_product_block), tablefmt="plain")
+    elif resource_types_only:  # noqa: RET505
+        return tabulate(details_resource_types(state.selected_product_block), tablefmt="plain")
+    elif depends_on_only:
+        return tabulate(details_depends_on(state.selected_product_block), tablefmt="plain")
+    elif in_use_by_only:
+        return tabulate(details_in_use_by(state.selected_product_block), tablefmt="plain")
+    else:
+        return tabulate(details_all(state.selected_product_block), tablefmt="plain")
 
 
 def product_block_depends_on(index: int) -> str:

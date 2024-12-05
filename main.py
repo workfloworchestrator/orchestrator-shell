@@ -65,12 +65,16 @@ class WFOshell(Cmd):
         else:
             self.poutput(wfoshell.subscripition.subscription_select(args.index))
 
-    def subscription_details(self, args: Namespace) -> None:  # noqa: ARG002
+    def subscription_details(self, args: Namespace) -> None:
         """Details subcommand of subscription command."""
         if state.subscription_index is None:
             self.pwarning("first select a subscription")
         else:
-            self.poutput(wfoshell.subscripition.subscription_details())
+            self.poutput(
+                wfoshell.subscripition.subscription_details(
+                    subscription_only=args.subscription_only, product_blocks_only=args.product_blocks_only
+                )
+            )
 
     def subscription_update(self, args: Namespace) -> None:  # noqa: C901
         """Update subcommand of subscription command."""
@@ -110,6 +114,8 @@ class WFOshell(Cmd):
     s_select_parser.add_argument("index", type=int, help="select by index number")
     s_select_parser.set_defaults(func=subscription_select)
     s_details_parser = s_subparser.add_parser("details")
+    s_details_parser.add_argument("--subscription_only", action="store_true", help="show subscription details only")
+    s_details_parser.add_argument("--product_blocks_only", action="store_true", help="show product block details only")
     s_details_parser.set_defaults(func=subscription_details)
     s_update_parser = s_subparser.add_parser("update")
     s_update_parser.add_argument(
@@ -154,12 +160,19 @@ class WFOshell(Cmd):
         else:
             self.poutput(wfoshell.product_block.product_block_select(args.index))
 
-    def product_block_details(self, args: Namespace) -> None:  # noqa: ARG002
+    def product_block_details(self, args: Namespace) -> None:
         """Details subcommand of product_block command."""
         if state.product_block_index is None:
             self.pwarning("first select a product_block")
         else:
-            self.poutput(wfoshell.product_block.product_block_details())
+            self.poutput(
+                wfoshell.product_block.product_block_details(
+                    product_block_only=args.product_block_only,
+                    resource_types_only=args.resource_types_only,
+                    depends_on_only=args.depends_on_only,
+                    in_use_by_only=args.in_use_by_only,
+                )
+            )
 
     def product_block_depends_on(self, args: Namespace) -> None:
         """Depends_on subcommand of product_block command."""
@@ -192,6 +205,10 @@ class WFOshell(Cmd):
     pb_select_parser.add_argument("index", type=int, help="select by index number")
     pb_select_parser.set_defaults(func=product_block_select)
     pb_details_parser = pb_subparser.add_parser("details")
+    pb_details_parser.add_argument("--product_block_only", action="store_true", help="show product block details only")
+    pb_details_parser.add_argument("--resource_types_only", action="store_true", help="show resource type details only")
+    pb_details_parser.add_argument("--depends_on_only", action="store_true", help="show depends on details only")
+    pb_details_parser.add_argument("--in_use_by_only", action="store_true", help="show in use by details only")
     pb_details_parser.set_defaults(func=product_block_details)
     pb_depends_on_parser = pb_subparser.add_parser("depends_on")
     pb_depends_on_parser.add_argument("index", type=int, help="select by index number")

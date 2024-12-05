@@ -45,8 +45,8 @@ def filtered_subscriptions(regular_expression: str, subscriptions: list[Subscrip
     return list(filter(lambda subscription: pattern.search(subscription.description), subscriptions))
 
 
-def details(subscription: SubscriptionTable) -> list[tuple[str, str]]:
-    """Return list of tuples with subscription detail information."""
+def details_subscription_only(subscription: SubscriptionTable) -> list[tuple[str, str]]:
+    """Return list of tuples with subscription details only."""
     return [
         ("description", subscription.description),
         ("subscription_id", subscription.subscription_id),
@@ -57,8 +57,19 @@ def details(subscription: SubscriptionTable) -> list[tuple[str, str]]:
         ("start_date", subscription.start_date),
         ("end_date", subscription.end_date),
         ("note", subscription.note),
+    ]
+
+
+def details_product_blocks_only() -> list[tuple[str, str]]:
+    """Return list of tuples with product blocks details only."""
+    return [
         ("product block(s)", product_block_table(state.selected_product_blocks)),
     ]
+
+
+def details_all(subscription: SubscriptionTable) -> list[tuple[str, str]]:
+    """Return list of tuples with all subscription details."""
+    return details_subscription_only(subscription) + details_product_blocks_only()
 
 
 def subscription_list() -> str:
@@ -86,9 +97,14 @@ def subscription_select(index: int) -> str:
     return tabulate(state.summary, tablefmt="plain")
 
 
-def subscription_details() -> str:
+def subscription_details(subscription_only: bool, product_blocks_only: bool) -> str:
     """Implementation of the 'subscription details' subcommand."""
-    return tabulate(details(state.selected_subscription), tablefmt="plain")
+    if subscription_only:
+        return tabulate(details_subscription_only(state.selected_subscription), tablefmt="plain")
+    elif product_blocks_only:  # noqa: RET505
+        return tabulate(details_product_blocks_only(), tablefmt="plain")
+    else:
+        return tabulate(details_all(state.selected_subscription), tablefmt="plain")
 
 
 def subscription_update(field: str, new_value: str | bool | datetime | None) -> None:
