@@ -47,11 +47,20 @@ The following commands are supported. Each command has its own help on their
 subcommands.
 
 ```text
-(wfo) help
+(wfo) help --verbose
 
 Documented commands (use 'help -v' for verbose/'help <topic>' for details):
-===========================================================================
-exit  help  history  product_block  quit  resource_type  set  subscription
+======================================================================================================
+exit                  Exit the application.
+help                  List available commands or provide detailed help for a specific command
+history               View, run, edit, save, or clear previously entered commands
+product_block         List and select product blocks, show details, or follow depends on and in use by
+                      product blocks.
+quit                  Exit this application
+resource_type         List, select and update resource types, and show details.
+set                   Set a settable parameter or show current settings of parameters
+state                 Show state summary or details.
+subscription          List, search or select subscriptions, update fields, and show details.
 ```
 
 The **subscription**, **product_block** and **resource_type** commands are used

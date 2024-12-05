@@ -105,19 +105,19 @@ class WFOshell(Cmd):
     # subscription (sub)commands argument parsers
     s_parser = Cmd2ArgumentParser()
     s_subparser = s_parser.add_subparsers(title="subscription subcommands")
-    s_list_parser = s_subparser.add_parser("list")
+    s_list_parser = s_subparser.add_parser("list", help="list all subscriptions from database")
     s_list_parser.set_defaults(func=subscription_list)
-    s_search_parser = s_subparser.add_parser("search")
+    s_search_parser = s_subparser.add_parser("search", help="case insensitive search subscription descriptions")
     s_search_parser.add_argument("regular_expression", type=str, help="match description on regular expression")
     s_search_parser.set_defaults(func=subscription_search)
-    s_select_parser = s_subparser.add_parser("select")
+    s_select_parser = s_subparser.add_parser("select", help="select subscription to work on")
     s_select_parser.add_argument("index", type=int, help="select by index number")
     s_select_parser.set_defaults(func=subscription_select)
-    s_details_parser = s_subparser.add_parser("details")
+    s_details_parser = s_subparser.add_parser("details", help="show subscription details")
     s_details_parser.add_argument("--subscription_only", action="store_true", help="show subscription details only")
     s_details_parser.add_argument("--product_blocks_only", action="store_true", help="show product block details only")
     s_details_parser.set_defaults(func=subscription_details)
-    s_update_parser = s_subparser.add_parser("update")
+    s_update_parser = s_subparser.add_parser("update", help="update subscription field")
     s_update_parser.add_argument(
         "field",
         choices=[
@@ -137,7 +137,7 @@ class WFOshell(Cmd):
     # subscription command
     @with_argparser(s_parser)
     def do_subscription(self, args: Namespace) -> None:
-        """Subscription related commands."""
+        """List, search or select subscriptions, update fields, and show details."""
         if func := getattr(args, "func", None):
             func(self, args)
         else:
@@ -199,28 +199,28 @@ class WFOshell(Cmd):
     # product_block (sub)commands argument parsers
     pb_parser = Cmd2ArgumentParser()
     pb_subparser = pb_parser.add_subparsers(title="product_block subcommands")
-    pb_list_parser = pb_subparser.add_parser("list")
+    pb_list_parser = pb_subparser.add_parser("list", help="list product blocks of current selected subscription")
     pb_list_parser.set_defaults(func=product_block_list)
-    pb_select_parser = pb_subparser.add_parser("select")
+    pb_select_parser = pb_subparser.add_parser("select", help="select product block to work on")
     pb_select_parser.add_argument("index", type=int, help="select by index number")
     pb_select_parser.set_defaults(func=product_block_select)
-    pb_details_parser = pb_subparser.add_parser("details")
+    pb_details_parser = pb_subparser.add_parser("details", help="show product block details")
     pb_details_parser.add_argument("--product_block_only", action="store_true", help="show product block details only")
     pb_details_parser.add_argument("--resource_types_only", action="store_true", help="show resource type details only")
     pb_details_parser.add_argument("--depends_on_only", action="store_true", help="show depends on details only")
     pb_details_parser.add_argument("--in_use_by_only", action="store_true", help="show in use by details only")
     pb_details_parser.set_defaults(func=product_block_details)
-    pb_depends_on_parser = pb_subparser.add_parser("depends_on")
+    pb_depends_on_parser = pb_subparser.add_parser("depends_on", help="show depends on product blocks")
     pb_depends_on_parser.add_argument("index", type=int, help="select by index number")
     pb_depends_on_parser.set_defaults(func=product_block_depends_on)
-    pb_is_use_by_parser = pb_subparser.add_parser("in_use_by")
+    pb_is_use_by_parser = pb_subparser.add_parser("in_use_by", help="show in use by product blocks")
     pb_is_use_by_parser.add_argument("index", type=int, help="select by index number")
     pb_is_use_by_parser.set_defaults(func=product_block_in_use_by)
 
     # product_block command
     @with_argparser(pb_parser)
     def do_product_block(self, args: Namespace) -> None:
-        """Product_block related commands."""
+        """List and select product blocks, show details, or follow depends on and in use by product blocks."""
         if func := getattr(args, "func", None):
             func(self, args)
         else:
@@ -260,21 +260,21 @@ class WFOshell(Cmd):
     # resource_type (sub)commands argument parsers
     rt_parser = Cmd2ArgumentParser()
     rt_subparser = rt_parser.add_subparsers(title="resource_type subcommands")
-    rt_list_parser = rt_subparser.add_parser("list")
+    rt_list_parser = rt_subparser.add_parser("list", help="list resource types of current selected product block")
     rt_list_parser.set_defaults(func=resource_type_list)
-    rt_select_parser = rt_subparser.add_parser("select")
+    rt_select_parser = rt_subparser.add_parser("select", help="select resource type to work on")
     rt_select_parser.add_argument("index", type=int, help="select by index number")
     rt_select_parser.set_defaults(func=resource_type_select)
-    rt_details_parser = rt_subparser.add_parser("details")
+    rt_details_parser = rt_subparser.add_parser("details", help="show resource type details")
     rt_details_parser.set_defaults(func=resource_type_details)
-    rt_update_parser = rt_subparser.add_parser("update")
+    rt_update_parser = rt_subparser.add_parser("update", help="update selected resource type")
     rt_update_parser.add_argument("new_value", type=str, help="new value for selected resource type")
     rt_update_parser.set_defaults(func=resource_type_update)
 
     # resource_type command
     @with_argparser(rt_parser)
     def do_resource_type(self, args: Namespace) -> None:
-        """resource_type related commands."""
+        """List, select and update resource types, and show details."""
         if func := getattr(args, "func", None):
             func(self, args)
         else:
@@ -282,20 +282,26 @@ class WFOshell(Cmd):
 
     # subcommand functions for the state command
     def state_summary(self, args: Namespace) -> None:  # noqa: ARG002
-        """Summary subcommand of state command."""
+        """summary subcommand of state command."""
         if summary := state.summary:
             self.poutput(summary)
+
+    def state_details(self, args: Namespace) -> None:  # noqa: ARG002
+        """details subcommand of state command."""
+        self.poutput(state.details)
 
     # state (sub)commands argument parsers
     state_parser = Cmd2ArgumentParser()
     state_subparser = state_parser.add_subparsers(title="state subcommands")
-    state_summary_parser = state_subparser.add_parser("summary")
+    state_summary_parser = state_subparser.add_parser("summary", help="show state summary")
     state_summary_parser.set_defaults(func=state_summary)
+    state_details_parser = state_subparser.add_parser("details", help="show state details")
+    state_details_parser.set_defaults(func=state_details)
 
     # resource_type command
     @with_argparser(state_parser)
     def do_state(self, args: Namespace) -> None:
-        """State related commands."""
+        """Show state summary or details."""
         if func := getattr(args, "func", None):
             func(self, args)
         else:

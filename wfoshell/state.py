@@ -95,6 +95,24 @@ class State:
             )
         return tabulate(summary, tablefmt="plain")
 
+    @property
+    def details(self) -> str:
+        """Show state details."""
+        return tabulate(
+            [
+                ("number of subscriptions", len(self.subscriptions)),
+                (
+                    "number of filtered subscriptions",
+                    len(self.filtered_subscriptions) if self.filtered_subscriptions is not None else "0",
+                ),
+                ("subscription index", self.subscription_index if self.subscription_index is not None else "unset"),
+                ("product block index", self.product_block_index if self.subscription_index is not None else "unset"),
+                ("resource type index", self.resource_type_index if self.subscription_index is not None else "unset"),
+                ("currently selected", self.summary),
+            ],
+            tablefmt="plain",
+        )
+
 
 state = State()
 
