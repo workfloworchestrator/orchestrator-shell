@@ -28,7 +28,7 @@ def resource_type_table(resource_types: list[SubscriptionInstanceValueTable], wi
         [
             [
                 resource_type.resource_type.resource_type.ljust(width),
-                resource_type.value if resource_type.value is not None else "<unset resource type>",
+                resource_type.value if resource_type.value is not None else "<unset or non-scalar>",
             ]
             for resource_type in sorted_resource_types(resource_types)
         ],

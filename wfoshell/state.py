@@ -90,7 +90,7 @@ class State:
                 (
                     "resource_type",
                     rt.resource_type.resource_type,
-                    rt.subscription_instance_value_id if rt.value is not None else "<unset resource type>",
+                    rt.subscription_instance_value_id if rt.value is not None else "<unset or non-scalar>",
                 ),
             )
         return tabulate(summary, tablefmt="plain")

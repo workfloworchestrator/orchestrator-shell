@@ -39,6 +39,12 @@ start_date and end_date subscription fields, these fields will not allow
 syntactically incorrect values.  Updating information in the database with
 unsupported values may brake things. Use this shell at your own risk.
 
+Only scalar resource types are supported. All non-scalar resource types are
+shown as `<unset or non-scalar>` while they can have a value in the database.
+Optional yet unset resource types can be assigned a value with the
+`resource_type  update` command, but do not try to update non-scalar resource
+types using the wfoshell.
+
 ## Usage
 
 ### Command overview
@@ -133,7 +139,7 @@ product block(s)  0  name            Port
                                      1  enabled           True
                                      2  ims_id            12
                                      3  lldp              False
-                                     4  node              <unset resource type>
+                                     4  node              <unset or non-scalar>
                                      5  nrm_id            33521
                                      6  port_description  data center connection
                                      7  port_mode         tagged
