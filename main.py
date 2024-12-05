@@ -280,6 +280,27 @@ class WFOshell(Cmd):
         else:
             self.do_help("resource_type")
 
+    # subcommand functions for the state command
+    def state_summary(self, args: Namespace) -> None:  # noqa: ARG002
+        """Summary subcommand of state command."""
+        if summary := state.summary:
+            self.poutput(summary)
+
+    # state (sub)commands argument parsers
+    state_parser = Cmd2ArgumentParser()
+    state_subparser = state_parser.add_subparsers(title="state subcommands")
+    state_summary_parser = state_subparser.add_parser("summary")
+    state_summary_parser.set_defaults(func=state_summary)
+
+    # resource_type command
+    @with_argparser(state_parser)
+    def do_state(self, args: Namespace) -> None:
+        """State related commands."""
+        if func := getattr(args, "func", None):
+            func(self, args)
+        else:
+            self.do_help("state")
+
 
 if __name__ == "__main__":
     shell = WFOshell()

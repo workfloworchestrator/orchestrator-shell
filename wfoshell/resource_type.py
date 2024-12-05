@@ -59,7 +59,7 @@ def resource_type_list() -> str:
 def resource_type_select(index: int) -> str:
     """Implementation of the 'resource_type select' subcommand."""
     state.resource_type_index = index
-    return tabulate.tabulate(state.summary, tablefmt="plain")
+    return state.summary
 
 
 def resource_type_details() -> str:

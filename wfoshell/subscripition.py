@@ -94,7 +94,7 @@ def subscription_select(index: int) -> str:
         state.subscription_index = state.subscriptions.index(state.filtered_subscriptions[index])
     state.product_block_index = None
     state.resource_type_index = None
-    return tabulate(state.summary, tablefmt="plain")
+    return state.summary
 
 
 def subscription_details(subscription_only: bool, product_blocks_only: bool) -> str:

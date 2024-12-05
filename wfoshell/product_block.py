@@ -92,7 +92,7 @@ def product_block_select(index: int) -> str:
     """Implementation of the 'product_block select' subcommand."""
     state.product_block_index = index
     state.resource_type_index = None
-    return tabulate(state.summary, tablefmt="plain")
+    return state.summary
 
 
 def product_block_details(
@@ -118,7 +118,7 @@ def product_block_depends_on(index: int) -> str:
     # note that the selected_product_blocks list below is of the subscription selected just above
     state.product_block_index = state.selected_product_blocks.index(depends_on_product_block)
     state.resource_type_index = None
-    return tabulate(state.summary, tablefmt="plain")
+    return state.summary
 
 
 def product_block_in_use_by(index: int) -> str:
@@ -128,4 +128,4 @@ def product_block_in_use_by(index: int) -> str:
     # note that the selected_product_blocks list below is of the subscription selected just above
     state.product_block_index = state.selected_product_blocks.index(in_use_by_product_block)
     state.resource_type_index = None
-    return tabulate(state.summary, tablefmt="plain")
+    return state.summary

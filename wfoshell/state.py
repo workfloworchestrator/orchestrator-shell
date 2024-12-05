@@ -14,6 +14,7 @@
 from dataclasses import dataclass, field
 
 from orchestrator.db import SubscriptionInstanceTable, SubscriptionInstanceValueTable, SubscriptionTable
+from tabulate import tabulate
 
 
 @dataclass
@@ -64,8 +65,8 @@ class State:
         raise IndexError("resource_type_index not set")
 
     @property
-    def summary(self) -> list[tuple[str, str, str]]:
-        """Generate a list of tuples with a summary of the subscription, product block and resource type state."""
+    def summary(self) -> str:
+        """List summary of the selected subscription, product block and resource type."""
         summary = []
         if self.subscription_index is not None:
             summary.append(
@@ -92,7 +93,7 @@ class State:
                     rt.subscription_instance_value_id if rt.value is not None else "<unset resource type>",
                 ),
             )
-        return summary
+        return tabulate(summary, tablefmt="plain")
 
 
 state = State()
