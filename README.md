@@ -69,15 +69,15 @@ state                 Show state summary or details.
 subscription          List, search or select subscriptions, update fields, and show details.
 ```
 
-The **subscription**, **product_block** and **resource_type** commands are used
+The `subscription`, `product_block` and `resource_type` commands are used
 to navigate through the database and update information. All three commands
-have **list**, **select** and **details** subcommands, and the **subscription**
-and **resource_type** commands have an **update** subcommand. These subcommands
+have `list`, `select` and `details` subcommands, and the `subscription`
+and `resource_type` commands have an `update` subcommand. These subcommands
 are used to list the specific type of information, select an item to work with,
 show more detailed information, and update information in the database. In
-addition, the **subscription** command has a case insensitive **search**
-subcommand to quickly find a subscription, and the **product_block** command
-has **depends_on** and **in_use_by** subcommands to navigate through product
+addition, the `subscription` command has a case insensitive `search`
+subcommand to quickly find a subscription, and the `product_block` command
+has `depends_on` and `in_use_by` subcommands to navigate through product
 blocks and therewith through subscriptions.
 
 ### Examples
