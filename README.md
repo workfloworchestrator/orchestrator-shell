@@ -80,6 +80,17 @@ subcommand to quickly find a subscription, and the `product_block` command
 has `depends_on` and `in_use_by` subcommands to navigate through product
 blocks and therewith through subscriptions.
 
+### Configuration
+
+Only little configuration is needed, and all is done through the shell
+environment variables that are shown below together with their defaults:
+
+```text
+DATABASE_URI=postgresql://nwa:nwa@localhost/orchestrator-core
+WFOSHELL_HISTFILE=~/.wfoshell_history
+WFOSHELL_HISTFILE_SIZE=1000
+```
+
 ### Examples
 
 #### Select subscription to update description
@@ -189,7 +200,6 @@ product block  Node                   d097cf20-9c4c-4ba8-9008-701841933a45
 7  role_id           2
 8  site_id           2
 9  type_id           5
-(wfo)
 (wfo) resource_type select 5
 subscription   node paris-1 (active)  05b7198c-9d6e-4a97-9a3e-001e337110ee
 product block  Node                   d097cf20-9c4c-4ba8-9008-701841933a45
