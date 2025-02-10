@@ -19,19 +19,21 @@ The wfoshell is tested with Python version 3.12.
 Install the required Python modules:
 
 ```shell
-pip install -r requirements/base.txt
+python -m venv venv
+source venv/bin/activate
+pip install orchestrator-shell
 ```
 
 And start the shell:
 
 ```shell
-python main.py
+python -m wfoshell
 ```
 
 ## Warning
 
 The shell operates directly on the database, changes made are instantly
-commited to the database. While using the shell, try to avoid other write
+committed to the database. While using the shell, try to avoid other write
 access to the database, or at least limit write access to the information you
 are touching. Also note that none of the information that is updated in the
 database is checked syntactically or in any other way, except for the insync,
