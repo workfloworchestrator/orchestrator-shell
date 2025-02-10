@@ -12,4 +12,4 @@
 #  limitations under the License.
 """Shell for interacting with an orchestrator-core database."""
 
-__version__ = "1.0.0"
+__version__ = "0.1.0"

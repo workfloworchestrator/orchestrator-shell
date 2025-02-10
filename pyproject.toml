@@ -49,6 +49,7 @@ dev = [
     "mypy",
     "ruff",
     "types-tabulate",
+    "bumpversion",
 ]
 
 [tool.flit.module]

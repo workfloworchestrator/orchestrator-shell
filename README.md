@@ -215,3 +215,11 @@ subscription_instance_id        d097cf20-9c4c-4ba8-9008-701841933a45
 resource_type_id                87a1523a-55d7-4431-804e-c70143330083
 (wfo)
 ```
+
+## Development
+
+Install a Python venv as described at the top of this file, then run the following:
+```shell
+pip install flit
+flit install --deps develop --symlink --python venv/bin/python
+```
