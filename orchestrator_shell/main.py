@@ -17,15 +17,15 @@ from datetime import datetime
 from cmd2 import Cmd, Cmd2ArgumentParser, Statement, with_argparser
 from orchestrator.db import init_database
 
-import wfoshell.product_block
-import wfoshell.resource_type
-import wfoshell.state
-import wfoshell.subscripition
-from wfoshell.settings import settings
-from wfoshell.state import state
+import orchestrator_shell.product_block
+import orchestrator_shell.resource_type
+import orchestrator_shell.state
+import orchestrator_shell.subscripition
+from orchestrator_shell.settings import settings
+from orchestrator_shell.state import state
 
 
-class WFOshell(Cmd):
+class OrchestratorShell(Cmd):
     """WorkFlow Orchestrator shell."""
 
     intro = "Welcome to the WFO shell.\n" "Type help or ? to list commands."
@@ -33,8 +33,8 @@ class WFOshell(Cmd):
     def __init__(self) -> None:
         """WFO shell initialisation."""
         super().__init__(
-            persistent_history_file=str(settings.WFOSHELL_HISTFILE),
-            persistent_history_length=settings.WFOSHELL_HISTFILE_SIZE,
+            persistent_history_file=str(settings.ORCHESTRATOR_SHELL_HISTFILE),
+            persistent_history_length=settings.ORCHESTRATOR_SHELL_HISTFILE_SIZE,
         )
         self.prompt = "(wfo) "
         self.hidden_commands.extend(["alias", "edit", "macro", "run_pyscript", "run_script", "shell", "shortcuts"])
@@ -47,11 +47,11 @@ class WFOshell(Cmd):
     # subcommand functions for the subscription command
     def subscription_list(self, args: Namespace) -> None:  # noqa: ARG002
         """List subcommand of subscription command."""
-        self.poutput(wfoshell.subscripition.subscription_list())
+        self.poutput(orchestrator_shell.subscripition.subscription_list())
 
     def subscription_search(self, args: Namespace) -> None:
         """Search subcommand of subscription command."""
-        self.poutput(wfoshell.subscripition.subscription_search(args.regular_expression))
+        self.poutput(orchestrator_shell.subscripition.subscription_search(args.regular_expression))
 
     def subscription_select(self, args: Namespace) -> None:
         """Select subcommand of subscription command."""
@@ -63,7 +63,7 @@ class WFOshell(Cmd):
         elif not 0 <= args.index < number_of_subscriptions:
             self.pwarning(f"selected subscription index not between 0 and {number_of_subscriptions - 1}")
         else:
-            self.poutput(wfoshell.subscripition.subscription_select(args.index))
+            self.poutput(orchestrator_shell.subscripition.subscription_select(args.index))
 
     def subscription_details(self, args: Namespace) -> None:
         """Details subcommand of subscription command."""
@@ -71,7 +71,7 @@ class WFOshell(Cmd):
             self.pwarning("first select a subscription")
         else:
             self.poutput(
-                wfoshell.subscripition.subscription_details(
+                orchestrator_shell.subscripition.subscription_details(
                     subscription_only=args.subscription_only, product_blocks_only=args.product_blocks_only
                 )
             )
@@ -100,7 +100,7 @@ class WFOshell(Cmd):
                     return
                 if args.new_value.tzinfo is None:
                     args.new_value = args.new_value.astimezone()
-        wfoshell.subscripition.subscription_update(args.field, args.new_value)
+        orchestrator_shell.subscripition.subscription_update(args.field, args.new_value)
 
     # subscription (sub)commands argument parsers
     s_parser = Cmd2ArgumentParser()
@@ -149,7 +149,7 @@ class WFOshell(Cmd):
         if state.subscription_index is None:
             self.pwarning("first select a subscription")
         else:
-            self.poutput(wfoshell.product_block.product_block_list())
+            self.poutput(orchestrator_shell.product_block.product_block_list())
 
     def product_block_select(self, args: Namespace) -> None:
         """Select subcommand of product_block command."""
@@ -158,7 +158,7 @@ class WFOshell(Cmd):
         elif not 0 <= args.index < number_of_product_blocks:
             self.pwarning(f"selected product_block index not between 0 and {number_of_product_blocks - 1}")
         else:
-            self.poutput(wfoshell.product_block.product_block_select(args.index))
+            self.poutput(orchestrator_shell.product_block.product_block_select(args.index))
 
     def product_block_details(self, args: Namespace) -> None:
         """Details subcommand of product_block command."""
@@ -166,7 +166,7 @@ class WFOshell(Cmd):
             self.pwarning("first select a product_block")
         else:
             self.poutput(
-                wfoshell.product_block.product_block_details(
+                orchestrator_shell.product_block.product_block_details(
                     product_block_only=args.product_block_only,
                     resource_types_only=args.resource_types_only,
                     depends_on_only=args.depends_on_only,
@@ -183,7 +183,7 @@ class WFOshell(Cmd):
         elif not 0 <= args.index < number_of_depends_on:
             self.pwarning(f"selected product_block index not between 0 and {number_of_depends_on - 1}")
         else:
-            self.poutput(wfoshell.product_block.product_block_depends_on(args.index))
+            self.poutput(orchestrator_shell.product_block.product_block_depends_on(args.index))
 
     def product_block_in_use_by(self, args: Namespace) -> None:
         """In_use_by subcommand of product_block command."""
@@ -194,7 +194,7 @@ class WFOshell(Cmd):
         elif not 0 <= args.index < number_of_in_use_by:
             self.pwarning(f"selected product_block index not between 0 and {number_of_in_use_by - 1}")
         else:
-            self.poutput(wfoshell.product_block.product_block_in_use_by(args.index))
+            self.poutput(orchestrator_shell.product_block.product_block_in_use_by(args.index))
 
     # product_block (sub)commands argument parsers
     pb_parser = Cmd2ArgumentParser()
@@ -232,7 +232,7 @@ class WFOshell(Cmd):
         if state.product_block_index is None:
             self.pwarning("first select a product block")
         else:
-            self.poutput(wfoshell.resource_type.resource_type_list())
+            self.poutput(orchestrator_shell.resource_type.resource_type_list())
 
     def resource_type_select(self, args: Namespace) -> None:
         """Select subcommand of resource_type command."""
@@ -241,21 +241,21 @@ class WFOshell(Cmd):
         elif not 0 <= args.index < number_of_resource_types:
             self.pwarning(f"selected resource_type index not between 0 and {number_of_resource_types - 1}")
         else:
-            self.poutput(wfoshell.resource_type.resource_type_select(args.index))
+            self.poutput(orchestrator_shell.resource_type.resource_type_select(args.index))
 
     def resource_type_details(self, args: Namespace) -> None:  # noqa: ARG002
         """Details subcommand of resource_type command."""
         if state.resource_type_index is None:
             self.pwarning("first select a resource_type")
         else:
-            self.poutput(wfoshell.resource_type.resource_type_details())
+            self.poutput(orchestrator_shell.resource_type.resource_type_details())
 
     def resource_type_update(self, args: Namespace) -> None:
         """Update subcommand of resource_type command."""
         if state.resource_type_index is None:
             self.pwarning("first select a resource_type")
         else:
-            wfoshell.resource_type.resource_type_update(args.new_value)
+            orchestrator_shell.resource_type.resource_type_update(args.new_value)
 
     # resource_type (sub)commands argument parsers
     rt_parser = Cmd2ArgumentParser()
@@ -306,8 +306,3 @@ class WFOshell(Cmd):
             func(self, args)
         else:
             self.do_help("state")
-
-
-if __name__ == "__main__":
-    shell = WFOshell()
-    shell.cmdloop()

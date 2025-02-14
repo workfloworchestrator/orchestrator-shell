@@ -12,4 +12,11 @@
 #  limitations under the License.
 """Shell for interacting with an orchestrator-core database."""
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
+
+from orchestrator_shell.main import OrchestratorShell
+
+
+def main():
+    shell = OrchestratorShell()
+    shell.cmdloop()

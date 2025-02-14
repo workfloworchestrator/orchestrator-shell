@@ -1,6 +1,6 @@
-# wfoshell
+# orchestrator_shell
 
-The wfoshell (WorkFlow Orchestrator Shell) is an interactive shell to navigate
+The orchestrator_shell (WorkFlow Orchestrator Shell) is an interactive shell to navigate
 through subscriptions product blocks and resource types, and update
 subscriptions and resource types directly in the database. The use of the GNU
 Readline interface allows for command completion and history, as wel as command
@@ -10,24 +10,24 @@ For various reasons, it sometimes happens that incorrect information ends up in
 the WFO database. Those who know the database model can of course adjust this
 information directly in the database with self-made SQL queries. For those who
 prefer an easy way to navigate through the subscriptions, product blocks and
-resource types to adjust incorrect information, can use the wfoshell.
+resource types to adjust incorrect information, can use the orchestrator_shell.
 
 ## Getting started
 
-The wfoshell is tested with Python version 3.12.
+The orchestrator_shell is tested with Python version 3.12.
 
 Install the required Python modules:
 
 ```shell
 python -m venv venv
 source venv/bin/activate
-pip install orchestrator-shell
+pip install orchestrator_shell
 ```
 
 And start the shell:
 
 ```shell
-python -m wfoshell
+python -m orchestrator_shell
 ```
 
 ## Warning
@@ -45,7 +45,7 @@ Only scalar resource types are supported. All non-scalar resource types are
 shown as `<unset or non-scalar>` while they can have a value in the database.
 Optional yet unset resource types can be assigned a value with the
 `resource_type  update` command, but do not try to update non-scalar resource
-types using the wfoshell.
+types using the orchestrator_shell.
 
 ## Usage
 
@@ -89,8 +89,8 @@ environment variables that are shown below together with their defaults:
 
 ```text
 DATABASE_URI=postgresql://nwa:nwa@localhost/orchestrator-core
-WFOSHELL_HISTFILE=~/.wfoshell_history
-WFOSHELL_HISTFILE_SIZE=1000
+ORCHESTRATOR_SHELL_HISTFILE=~/.orchestrator_shell_history
+ORCHESTRATOR_SHELL_HISTFILE_SIZE=1000
 ```
 
 ### Examples

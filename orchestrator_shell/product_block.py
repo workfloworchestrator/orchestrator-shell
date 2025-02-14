@@ -15,8 +15,8 @@
 from orchestrator.db import SubscriptionInstanceTable
 from tabulate import tabulate
 
-from wfoshell.resource_type import resource_type_table
-from wfoshell.state import all_resource_types, state
+from orchestrator_shell.resource_type import resource_type_table
+from orchestrator_shell.state import all_resource_types, state
 
 
 def product_block_table(product_blocks: list[SubscriptionInstanceTable]) -> str:
