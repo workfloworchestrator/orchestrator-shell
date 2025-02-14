@@ -21,8 +21,8 @@ class Settings(BaseSettings):
     """WFO Shell settings."""
 
     DATABASE_URI: PostgresDsn = "postgresql://nwa:nwa@localhost/orchestrator-core"  # type: ignore[assignment]
-    WFOSHELL_HISTFILE: Path = Path("~/.wfoshell_history").expanduser()
-    WFOSHELL_HISTFILE_SIZE: int = 1000
+    ORCHESTRATOR_SHELL_HISTFILE: Path = Path("~/.orchestrator_shell_history").expanduser()
+    ORCHESTRATOR_SHELL_HISTFILE_SIZE: int = 1000
 
 
 settings = Settings()
