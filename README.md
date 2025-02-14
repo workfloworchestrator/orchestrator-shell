@@ -21,13 +21,13 @@ Install the required Python modules:
 ```shell
 python -m venv venv
 source venv/bin/activate
-pip install orchestrator_shell
+pip install orchestrator-shell
 ```
 
 And start the shell:
 
 ```shell
-python -m orchestrator_shell
+orchestrator-shell
 ```
 
 ## Warning
