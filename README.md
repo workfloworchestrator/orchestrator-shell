@@ -88,7 +88,6 @@ Only little configuration is needed, and all is done through the shell
 environment variables that are shown below together with their defaults:
 
 ```text
-DATABASE_URI=postgresql://nwa:nwa@localhost/orchestrator-core
 ORCHESTRATOR_SHELL_HISTFILE=~/.orchestrator_shell_history
 ORCHESTRATOR_SHELL_HISTFILE_SIZE=1000
 ```
