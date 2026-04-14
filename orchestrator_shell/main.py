@@ -16,6 +16,7 @@ from datetime import datetime
 
 from cmd2 import Cmd, Cmd2ArgumentParser, Statement, with_argparser
 from orchestrator.db import init_database
+from orchestrator.settings import app_settings
 
 import orchestrator_shell.product_block
 import orchestrator_shell.resource_type
@@ -38,7 +39,7 @@ class OrchestratorShell(Cmd):
         )
         self.prompt = "(wfo) "
         self.hidden_commands.extend(["alias", "edit", "macro", "run_pyscript", "run_script", "shell", "shortcuts"])
-        init_database(settings)  # type: ignore[arg-type]
+        init_database(app_settings)  # type: ignore[arg-type]
 
     def do_exit(self, line: Statement) -> bool:  # noqa: ARG002
         """Exit the application."""

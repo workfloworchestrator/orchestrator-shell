@@ -20,7 +20,6 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     """WFO Shell settings."""
 
-    DATABASE_URI: PostgresDsn = "postgresql://nwa:nwa@localhost/orchestrator-core"  # type: ignore[assignment]
     ORCHESTRATOR_SHELL_HISTFILE: Path = Path("~/.orchestrator_shell_history").expanduser()
     ORCHESTRATOR_SHELL_HISTFILE_SIZE: int = 1000
 
