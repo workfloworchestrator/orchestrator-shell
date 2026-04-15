@@ -1,4 +1,4 @@
-#  Copyright 2024 SURF.
+#  Copyright 2024-2026 SURF, GÉANT.
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
@@ -16,11 +16,12 @@ from datetime import datetime
 
 from cmd2 import Cmd, Cmd2ArgumentParser, Statement, with_argparser
 from orchestrator.db import init_database
+from orchestrator.services.processes import RESUMABLE_STATUSES
 from orchestrator.settings import app_settings
 
+import orchestrator_shell.process
 import orchestrator_shell.product_block
 import orchestrator_shell.resource_type
-import orchestrator_shell.state
 import orchestrator_shell.subscripition
 from orchestrator_shell.settings import settings
 from orchestrator_shell.state import state
@@ -29,7 +30,7 @@ from orchestrator_shell.state import state
 class OrchestratorShell(Cmd):
     """WorkFlow Orchestrator shell."""
 
-    intro = "Welcome to the WFO shell.\n" "Type help or ? to list commands."
+    intro = "Welcome to the WFO shell.\nType help or ? to list commands."
 
     def __init__(self) -> None:
         """WFO shell initialisation."""
@@ -41,18 +42,18 @@ class OrchestratorShell(Cmd):
         self.hidden_commands.extend(["alias", "edit", "macro", "run_pyscript", "run_script", "shell", "shortcuts"])
         init_database(app_settings)  # type: ignore[arg-type]
 
-    def do_exit(self, line: Statement) -> bool:  # noqa: ARG002
+    def do_exit(self, _: Statement) -> bool:
         """Exit the application."""
         return True
 
     # subcommand functions for the subscription command
-    def subscription_list(self, args: Namespace) -> None:  # noqa: ARG002
+    def subscription_list(self, _: Namespace) -> None:
         """List subcommand of subscription command."""
-        self.poutput(orchestrator_shell.subscripition.subscription_list())
+        self.ppaged(orchestrator_shell.subscripition.subscription_list())
 
     def subscription_search(self, args: Namespace) -> None:
         """Search subcommand of subscription command."""
-        self.poutput(orchestrator_shell.subscripition.subscription_search(args.regular_expression))
+        self.ppaged(orchestrator_shell.subscripition.subscription_search(args.regular_expression))
 
     def subscription_select(self, args: Namespace) -> None:
         """Select subcommand of subscription command."""
@@ -115,8 +116,8 @@ class OrchestratorShell(Cmd):
     s_select_parser.add_argument("index", type=int, help="select by index number")
     s_select_parser.set_defaults(func=subscription_select)
     s_details_parser = s_subparser.add_parser("details", help="show subscription details")
-    s_details_parser.add_argument("--subscription_only", action="store_true", help="show subscription details only")
-    s_details_parser.add_argument("--product_blocks_only", action="store_true", help="show product block details only")
+    s_details_parser.add_argument("--subscription-only", action="store_true", help="show subscription details only")
+    s_details_parser.add_argument("--product-blocks-only", action="store_true", help="show product block details only")
     s_details_parser.set_defaults(func=subscription_details)
     s_update_parser = s_subparser.add_parser("update", help="update subscription field")
     s_update_parser.add_argument(
@@ -145,7 +146,7 @@ class OrchestratorShell(Cmd):
             self.do_help("subscription")
 
     # subcommand functions for the product_block command
-    def product_block_list(self, args: Namespace) -> None:  # noqa: ARG002
+    def product_block_list(self, _: Namespace) -> None:
         """List subcommand of product_block command."""
         if state.subscription_index is None:
             self.pwarning("first select a subscription")
@@ -206,10 +207,10 @@ class OrchestratorShell(Cmd):
     pb_select_parser.add_argument("index", type=int, help="select by index number")
     pb_select_parser.set_defaults(func=product_block_select)
     pb_details_parser = pb_subparser.add_parser("details", help="show product block details")
-    pb_details_parser.add_argument("--product_block_only", action="store_true", help="show product block details only")
-    pb_details_parser.add_argument("--resource_types_only", action="store_true", help="show resource type details only")
-    pb_details_parser.add_argument("--depends_on_only", action="store_true", help="show depends on details only")
-    pb_details_parser.add_argument("--in_use_by_only", action="store_true", help="show in use by details only")
+    pb_details_parser.add_argument("--product-block-only", action="store_true", help="show product block details only")
+    pb_details_parser.add_argument("--resource-types-only", action="store_true", help="show resource type details only")
+    pb_details_parser.add_argument("--depends-on-only", action="store_true", help="show depends on details only")
+    pb_details_parser.add_argument("--in-use-by-only", action="store_true", help="show in use by details only")
     pb_details_parser.set_defaults(func=product_block_details)
     pb_depends_on_parser = pb_subparser.add_parser("depends_on", help="show depends on product blocks")
     pb_depends_on_parser.add_argument("index", type=int, help="select by index number")
@@ -228,7 +229,7 @@ class OrchestratorShell(Cmd):
             self.do_help("product_block")
 
     # subcommand functions for the resource_type command
-    def resource_type_list(self, args: Namespace) -> None:  # noqa: ARG002
+    def resource_type_list(self, _: Namespace) -> None:
         """List subcommand of resource_type command."""
         if state.product_block_index is None:
             self.pwarning("first select a product block")
@@ -244,7 +245,7 @@ class OrchestratorShell(Cmd):
         else:
             self.poutput(orchestrator_shell.resource_type.resource_type_select(args.index))
 
-    def resource_type_details(self, args: Namespace) -> None:  # noqa: ARG002
+    def resource_type_details(self, _: Namespace) -> None:
         """Details subcommand of resource_type command."""
         if state.resource_type_index is None:
             self.pwarning("first select a resource_type")
@@ -282,13 +283,13 @@ class OrchestratorShell(Cmd):
             self.do_help("resource_type")
 
     # subcommand functions for the state command
-    def state_summary(self, args: Namespace) -> None:  # noqa: ARG002
-        """summary subcommand of state command."""
+    def state_summary(self, _: Namespace) -> None:
+        """Summary subcommand of state command."""
         if summary := state.summary:
             self.poutput(summary)
 
-    def state_details(self, args: Namespace) -> None:  # noqa: ARG002
-        """details subcommand of state command."""
+    def state_details(self, _: Namespace) -> None:
+        """Details subcommand of state command."""
         self.poutput(state.details)
 
     # state (sub)commands argument parsers
@@ -299,7 +300,7 @@ class OrchestratorShell(Cmd):
     state_details_parser = state_subparser.add_parser("details", help="show state details")
     state_details_parser.set_defaults(func=state_details)
 
-    # resource_type command
+    # state command
     @with_argparser(state_parser)
     def do_state(self, args: Namespace) -> None:
         """Show state summary or details."""
@@ -307,3 +308,71 @@ class OrchestratorShell(Cmd):
             func(self, args)
         else:
             self.do_help("state")
+
+    # subcommand functions for the process command
+    def process_list(self, _: Namespace) -> None:
+        """List subcommand of process command."""
+        self.pfeedback("INFO: Listing only the ten most recent processes. Use search to find more.")
+        self.poutput(orchestrator_shell.process.process_list())
+
+    def process_search(self, args: Namespace) -> None:
+        """Search subcommand of process command."""
+        self.ppaged(orchestrator_shell.process.process_search(args.regular_expression))
+
+    def process_select(self, args: Namespace) -> None:
+        """Select subcommand of process command."""
+        number_of_processes = (
+            len(state.filtered_processes) if state.filtered_processes is not None else len(state.processes)
+        )
+        if not number_of_processes:
+            self.pwarning("list or search for processes first")
+        elif not 0 <= args.index < number_of_processes:
+            self.pwarning(f"selected process index not between 0 and {number_of_processes - 1}")
+        else:
+            self.poutput(orchestrator_shell.process.process_select(args.index))
+
+    def process_detail(self, _: Namespace) -> None:
+        """Details subcommand of process command."""
+        if state.process_index is None:
+            self.pwarning("first select a process")
+        else:
+            self.poutput(orchestrator_shell.process.process_details())
+
+    def process_leapfrog(self, _: Namespace) -> None:
+        """Leapfrog subcommand of process command."""
+        if state.process_index is None:
+            self.pwarning("first select a process")
+            return
+        if state.selected_process.last_status not in RESUMABLE_STATUSES:
+            self.pwarning("selected process is not resumable")
+            return
+        self.poutput(orchestrator_shell.process.process_leapfrog())
+
+    # process (sub)commands argument parsers
+    process_parser = Cmd2ArgumentParser()
+    process_subparser = process_parser.add_subparsers(title="process subcommands")
+    process_list_parser = process_subparser.add_parser("list", help="list all processes from database")
+    process_list_parser.set_defaults(func=process_list)
+    process_search_parser = process_subparser.add_parser(
+        "search", help="case insensitive search process by workflow name or created by"
+    )
+    process_search_parser.add_argument(
+        "regular_expression", type=str, help="match process workflow name on regular expression"
+    )
+    process_search_parser.set_defaults(func=process_search)
+    process_select_parser = process_subparser.add_parser("select", help="select process to work on")
+    process_select_parser.add_argument("index", type=int, help="select by index number")
+    process_select_parser.set_defaults(func=process_select)
+    process_leapfrog_parser = process_subparser.add_parser(
+        "leapfrog", help="leapfrog a failed process forward by one step"
+    )
+    process_leapfrog_parser.set_defaults(func=process_leapfrog)
+
+    # process command
+    @with_argparser(process_parser)
+    def do_process(self, args: Namespace) -> None:
+        """List and select processes, and update their progress."""
+        if func := getattr(args, "func", None):
+            func(self, args)
+        else:
+            self.do_help("process")

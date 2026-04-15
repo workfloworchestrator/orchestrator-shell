@@ -1,4 +1,4 @@
-#  Copyright 2024 SURF.
+#  Copyright 2024-2026 SURF, GÉANT.
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
@@ -12,11 +12,12 @@
 #  limitations under the License.
 """Shell for interacting with an orchestrator-core database."""
 
-__version__ = "0.2.0"
+__version__ = "1.0.0"
 
 from orchestrator_shell.main import OrchestratorShell
 
 
-def main():
+def main() -> None:  # noqa: RUF067
+    """Start a new Orchestrator Shell."""
     shell = OrchestratorShell()
     shell.cmdloop()

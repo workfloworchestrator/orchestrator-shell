@@ -20,7 +20,7 @@ classifiers = [
     "Topic :: Software Development",
     "Topic :: Software Development",
     "Typing :: Typed",
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
     "Intended Audience :: Developers",
     "Intended Audience :: Telecommunications Industry",
@@ -88,8 +88,6 @@ lint.exclude = [
     "src",
 ]
 lint.ignore = [
-    "ANN101",
-    "ANN102",
     "D100",
     "D104",
     "T201",

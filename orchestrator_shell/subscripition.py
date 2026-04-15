@@ -1,4 +1,4 @@
-#  Copyright 2024 SURF.
+#  Copyright 2024-2026 SURF, GÉANT.
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
@@ -101,10 +101,9 @@ def subscription_details(subscription_only: bool, product_blocks_only: bool) -> 
     """Implementation of the 'subscription details' subcommand."""
     if subscription_only:
         return tabulate(details_subscription_only(state.selected_subscription), tablefmt="plain")
-    elif product_blocks_only:  # noqa: RET505
+    if product_blocks_only:
         return tabulate(details_product_blocks_only(), tablefmt="plain")
-    else:
-        return tabulate(details_all(state.selected_subscription), tablefmt="plain")
+    return tabulate(details_all(state.selected_subscription), tablefmt="plain")
 
 
 def subscription_update(field: str, new_value: str | bool | datetime | None) -> None:
