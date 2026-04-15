@@ -96,7 +96,7 @@ class OrchestratorShell(Cmd):
                 args.new_value = None
             else:
                 try:
-                    args.new_value = datetime.fromisoformat(args.new_value)
+                    args.new_value = datetime.fromisoformat(str(args.new_value))
                 except ValueError as value_error:
                     self.pwarning(str(value_error))
                     return
