@@ -15,6 +15,7 @@ import re
 
 from orchestrator.db import ProcessStepTable, ProcessTable, db, transactional
 from orchestrator.workflow import ProcessStatus, StepStatus
+from sqlalchemy import select
 from structlog import get_logger
 from tabulate import tabulate
 
@@ -98,10 +99,10 @@ def process_details() -> str:
 def process_leapfrog() -> str:
     """Implementation of the 'process leapfrog' subcommand."""
     with transactional(db, logger):
-        related_steps: list[ProcessStepTable] = sorted(
-            ProcessStepTable.query.filter(ProcessStepTable.process_id == state.selected_process.process_id).all(),
-            key=lambda step: step.completed_at,
+        related_steps_db = db.session.scalars(
+            select(ProcessStepTable).where(ProcessStepTable.process_id == state.selected_process.process_id)
         )
+        related_steps: list[ProcessStepTable] = sorted(related_steps_db, key=lambda step: step.completed_at)
         last_successful_step = next(
             (step for step in reversed(related_steps) if step.status == StepStatus.SUCCESS), None
         )
