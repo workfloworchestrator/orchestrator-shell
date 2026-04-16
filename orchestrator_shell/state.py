@@ -1,19 +1,19 @@
-#  Copyright 2024 SURF.
-#  Licensed under the Apache License, Version 2.0 (the "License");
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
+# Copyright 2024-2026 SURF, GÉANT.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-#        http://www.apache.org/licenses/LICENSE-2.0
+#       http://www.apache.org/licenses/LICENSE-2.0
 #
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 from dataclasses import dataclass, field
 
-from orchestrator.db import SubscriptionInstanceTable, SubscriptionInstanceValueTable, SubscriptionTable
+from orchestrator.db import ProcessTable, SubscriptionInstanceTable, SubscriptionInstanceValueTable, SubscriptionTable
 from tabulate import tabulate
 
 
@@ -24,6 +24,9 @@ class State:
     subscriptions: list[SubscriptionTable] = field(default_factory=list)
     filtered_subscriptions: list[SubscriptionTable] | None = None
     subscription_index: int | None = None
+    processes: list[ProcessTable] = field(default_factory=list)
+    filtered_processes: list[ProcessTable] | None = None
+    process_index: int | None = None
     product_block_index: int | None = None
     resource_type_index: int | None = None
 
@@ -33,6 +36,13 @@ class State:
         if self.subscription_index is not None:
             return self.subscriptions[self.subscription_index]
         raise IndexError("subscription_index not set")
+
+    @property
+    def selected_process(self) -> ProcessTable:
+        """Return the process indexed by process_index."""
+        if self.process_index is not None:
+            return self.processes[self.process_index]
+        raise IndexError("process_index not set")
 
     @property
     def selected_product_blocks(self) -> list[SubscriptionInstanceTable]:
@@ -69,13 +79,13 @@ class State:
         """List summary of the selected subscription, product block and resource type."""
         summary = []
         if self.subscription_index is not None:
-            summary.append(
-                (
-                    "subscription",
-                    self.selected_subscription.description,
-                    self.selected_subscription.subscription_id,
-                )
-            )
+            summary.append((
+                "subscription",
+                self.selected_subscription.description,
+                self.selected_subscription.subscription_id,
+            ))
+        if self.process_index is not None:
+            summary.append(("process", self.selected_process.workflow_name, self.selected_process.process_id))
         if self.product_block_index is not None:
             summary.append(
                 (
@@ -135,6 +145,11 @@ def all_resource_types(product_block: SubscriptionInstanceTable) -> list[Subscri
 def sorted_subscriptions(subscriptions: list[SubscriptionTable]) -> list[SubscriptionTable]:
     """Sort subscriptions on description."""
     return sorted(subscriptions, key=lambda subscription: subscription.description)
+
+
+def sorted_processes(processes: list[ProcessTable]) -> list[ProcessTable]:
+    """Sort processes on start date."""
+    return sorted(processes, key=lambda process: process.started_at)
 
 
 def sorted_product_blocks(product_blocks: list[SubscriptionInstanceTable]) -> list[SubscriptionInstanceTable]:

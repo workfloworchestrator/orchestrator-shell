@@ -14,20 +14,10 @@ resource types to adjust incorrect information, can use the orchestrator_shell.
 
 ## Getting started
 
-The orchestrator_shell is tested with Python version 3.12.
-
-Install the required Python modules:
+Make sure you have `uv` installed on your system. Then simply run:
 
 ```shell
-python -m venv venv
-source venv/bin/activate
-pip install orchestrator-shell
-```
-
-And start the shell:
-
-```shell
-orchestrator-shell
+uvx orchestrator-shell
 ```
 
 ## Warning
@@ -217,8 +207,10 @@ resource_type_id                87a1523a-55d7-4431-804e-c70143330083
 
 ## Development
 
-Install a Python venv as described at the top of this file, then run the following:
+Install a Python venv, and run the following:
+
 ```shell
-pip install flit
-flit install --deps develop --symlink --python venv/bin/python
+uv venv
+source .venv/bin/activate
+uv sync --all-groups --all-extras
 ```

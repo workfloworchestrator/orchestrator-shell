@@ -1,0 +1,46 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Linting tests
+
+on:
+  push:
+    branches: [ main ]
+  workflow_call:
+  pull_request:
+
+env:
+  UV_LOCKED: true  # Assert that the `uv.lock` will remain unchanged
+
+jobs:
+  build:
+    name: Linting Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12', '3.13', '3.14']
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v7
+        with:
+          # It is considered best practice to pin to a specific uv version.
+          version: "0.11.6"
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install the project
+        # --all-extras: [project.optional-dependencies]
+        # --dev: group 'dev' from [dependency-groups]
+        run: uv sync --all-extras --dev
+
+      - name: Check with ty
+        run: uv run ty check
+
+      - name: Cache pre-commit hooks and environments
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/pre-commit
+          key: ${{ runner.os }}-pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}

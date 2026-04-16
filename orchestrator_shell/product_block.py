@@ -1,15 +1,15 @@
-#  Copyright 2024 SURF.
-#  Licensed under the Apache License, Version 2.0 (the "License");
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
+# Copyright 2024-2026 SURF, GÉANT.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-#        http://www.apache.org/licenses/LICENSE-2.0
+#       http://www.apache.org/licenses/LICENSE-2.0
 #
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 
 from orchestrator.db import SubscriptionInstanceTable
@@ -21,7 +21,7 @@ from orchestrator_shell.state import all_resource_types, state
 
 def product_block_table(product_blocks: list[SubscriptionInstanceTable]) -> str:
     """Return indexed table of product blocks."""
-    max_rt_width = max([len(rt.resource_type.resource_type) for pb in product_blocks for rt in all_resource_types(pb)])
+    max_rt_width = max(len(rt.resource_type.resource_type) for pb in product_blocks for rt in all_resource_types(pb))
     return tabulate(
         [
             [
@@ -101,14 +101,13 @@ def product_block_details(
     """Implementation of the 'product_block details' subcommand."""
     if product_block_only:
         return tabulate(details_product_block(state.selected_product_block), tablefmt="plain")
-    elif resource_types_only:  # noqa: RET505
+    if resource_types_only:
         return tabulate(details_resource_types(state.selected_product_block), tablefmt="plain")
-    elif depends_on_only:
+    if depends_on_only:
         return tabulate(details_depends_on(state.selected_product_block), tablefmt="plain")
-    elif in_use_by_only:
+    if in_use_by_only:
         return tabulate(details_in_use_by(state.selected_product_block), tablefmt="plain")
-    else:
-        return tabulate(details_all(state.selected_product_block), tablefmt="plain")
+    return tabulate(details_all(state.selected_product_block), tablefmt="plain")
 
 
 def product_block_depends_on(index: int) -> str:
