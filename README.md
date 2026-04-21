@@ -1,8 +1,8 @@
 # orchestrator_shell
 
 The orchestrator_shell (WorkFlow Orchestrator Shell) is an interactive shell to navigate
-through subscriptions product blocks and resource types, and update
-subscriptions and resource types directly in the database. The use of the GNU
+through subscriptions, product blocks, resource types, and processes, and
+update subscriptions and resource types directly in the database. The use of the GNU
 Readline interface allows for command completion and history, as wel as command
 line editing and search.
 
@@ -57,6 +57,7 @@ product_block         List and select product blocks, show details, or follow de
 quit                  Exit this application
 resource_type         List, select and update resource types, and show details.
 set                   Set a settable parameter or show current settings of parameters
+process               List and select processes, and update their progress.
 state                 Show state summary or details.
 subscription          List, search or select subscriptions, update fields, and show details.
 ```
@@ -70,7 +71,9 @@ show more detailed information, and update information in the database. In
 addition, the `subscription` command has a case insensitive `search`
 subcommand to quickly find a subscription, and the `product_block` command
 has `depends_on` and `in_use_by` subcommands to navigate through product
-blocks and therewith through subscriptions.
+blocks and therewith through subscriptions. The `process` command can be
+used to list and search for processes, and has a `leapfrog` subcommand to
+force a failed process forward by one step.
 
 ### Configuration
 
@@ -135,7 +138,7 @@ the associated node.
 0  port 10G paris-1 ethernet-1/5 data center connection  fa6b26ed-fee1-48f6-a6ea-6baf39589be1
 (wfo) subscription select 0
 subscription  port 10G paris-1 ethernet-1/5 data center connection  fa6b26ed-fee1-48f6-a6ea-6baf39589be1
-(wfo) subscription details --product_blocks_only
+(wfo) subscription details --product-blocks-only
 product block(s)  0  name            Port
                      resource types  0  auto_negotiation  False
                                      1  enabled           True
@@ -150,7 +153,7 @@ product block(s)  0  name            Port
 (wfo) product_block select 0
 subscription   port 10G paris-1 ethernet-1/5 data center connection  fa6b26ed-fee1-48f6-a6ea-6baf39589be1
 product block  Port                                                  2918af3f-7dbb-4408-9fb1-ad71920487bc
-(wfo) product_block details --depends_on_only
+(wfo) product_block details --depends-on-only
 depends_on  0  name            Node
                resource types  0  ims_id            2
                                1  ipv4_ipam_id      5
