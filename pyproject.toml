@@ -32,7 +32,7 @@ classifiers = [
 ]
 dependencies = [
     "cmd2",
-    "orchestrator-core==5.0.0rc3",
+    "orchestrator-core>=5.0.0rc3",
     "tabulate",
 ]
 license = "Apache-2.0"
