@@ -14,7 +14,7 @@
 
 __version__ = "2.0.0"
 
-from orchestrator_shell.main import OrchestratorShell
+from orchestrator.shell.main import OrchestratorShell
 
 
 def main() -> None:  # noqa: RUF067

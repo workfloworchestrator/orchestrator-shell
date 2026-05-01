@@ -35,7 +35,7 @@ classifiers = [
 ]
 dependencies = [
     "cmd2",
-    "orchestrator-core",
+    "orchestrator-core==5.0.0rc3",
     "tabulate",
 ]
 
@@ -47,7 +47,7 @@ Documentation = "https://workfloworchestrator.org/orchestrator-core/"
 Source = "https://github.com/workfloworchestrator/orchestrator-shell"
 
 [project.scripts]
-orchestrator-shell = "orchestrator_shell:main"
+orchestrator-shell = "orchestrator.shell:main"
 
 [tool.flit.module]
 name = "orchestrator_shell"
