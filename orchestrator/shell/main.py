@@ -15,9 +15,9 @@ from argparse import Namespace
 from datetime import datetime
 
 from cmd2 import Cmd, Cmd2ArgumentParser, Statement, with_argparser
-from orchestrator.db import init_database
-from orchestrator.services.processes import RESUMABLE_STATUSES
-from orchestrator.settings import app_settings
+from orchestrator.core.db import init_database
+from orchestrator.core.services.processes import RESUMABLE_STATUSES
+from orchestrator.core.settings import app_settings
 
 import orchestrator.shell.process
 import orchestrator.shell.product_block

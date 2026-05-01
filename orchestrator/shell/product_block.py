@@ -12,7 +12,7 @@
 # limitations under the License.
 
 
-from orchestrator.db import SubscriptionInstanceTable
+from orchestrator.core.db import SubscriptionInstanceTable
 from tabulate import tabulate
 
 from orchestrator.shell.resource_type import resource_type_table

@@ -13,7 +13,12 @@
 
 from dataclasses import dataclass, field
 
-from orchestrator.db import ProcessTable, SubscriptionInstanceTable, SubscriptionInstanceValueTable, SubscriptionTable
+from orchestrator.core.db import (
+    ProcessTable,
+    SubscriptionInstanceTable,
+    SubscriptionInstanceValueTable,
+    SubscriptionTable,
+)
 from tabulate import tabulate
 
 
@@ -79,11 +84,13 @@ class State:
         """List summary of the selected subscription, product block and resource type."""
         summary = []
         if self.subscription_index is not None:
-            summary.append((
-                "subscription",
-                self.selected_subscription.description,
-                self.selected_subscription.subscription_id,
-            ))
+            summary.append(
+                (
+                    "subscription",
+                    self.selected_subscription.description,
+                    self.selected_subscription.subscription_id,
+                )
+            )
         if self.process_index is not None:
             summary.append(("process", self.selected_process.workflow_name, self.selected_process.process_id))
         if self.product_block_index is not None:

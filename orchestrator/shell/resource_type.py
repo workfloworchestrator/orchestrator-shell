@@ -13,7 +13,7 @@
 
 
 import tabulate
-from orchestrator.db import SubscriptionInstanceValueTable, db, transactional
+from orchestrator.core.db import SubscriptionInstanceValueTable, db, transactional
 from structlog import get_logger
 
 from orchestrator.shell.state import sorted_resource_types, state

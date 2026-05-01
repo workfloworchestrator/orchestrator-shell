@@ -14,7 +14,7 @@
 import re
 from datetime import datetime
 
-from orchestrator.db import SubscriptionTable, db, transactional
+from orchestrator.core.db import SubscriptionTable, db, transactional
 from structlog import get_logger
 from tabulate import tabulate
 
