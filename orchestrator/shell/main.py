@@ -15,16 +15,16 @@ from argparse import Namespace
 from datetime import datetime
 
 from cmd2 import Cmd, Cmd2ArgumentParser, Statement, with_argparser
-from orchestrator.db import init_database
-from orchestrator.services.processes import RESUMABLE_STATUSES
-from orchestrator.settings import app_settings
+from orchestrator.core.db import init_database
+from orchestrator.core.services.processes import RESUMABLE_STATUSES
+from orchestrator.core.settings import app_settings
 
-import orchestrator_shell.process
-import orchestrator_shell.product_block
-import orchestrator_shell.resource_type
-import orchestrator_shell.subscripition
-from orchestrator_shell.settings import settings
-from orchestrator_shell.state import state
+import orchestrator.shell.process
+import orchestrator.shell.product_block
+import orchestrator.shell.resource_type
+import orchestrator.shell.subscripition
+from orchestrator.shell.settings import settings
+from orchestrator.shell.state import state
 
 
 class OrchestratorShell(Cmd):
@@ -49,11 +49,11 @@ class OrchestratorShell(Cmd):
     # subcommand functions for the subscription command
     def subscription_list(self, _: Namespace) -> None:
         """List subcommand of subscription command."""
-        self.ppaged(orchestrator_shell.subscripition.subscription_list())
+        self.ppaged(orchestrator.shell.subscripition.subscription_list())
 
     def subscription_search(self, args: Namespace) -> None:
         """Search subcommand of subscription command."""
-        self.ppaged(orchestrator_shell.subscripition.subscription_search(args.regular_expression))
+        self.ppaged(orchestrator.shell.subscripition.subscription_search(args.regular_expression))
 
     def subscription_select(self, args: Namespace) -> None:
         """Select subcommand of subscription command."""
@@ -65,7 +65,7 @@ class OrchestratorShell(Cmd):
         elif not 0 <= args.index < number_of_subscriptions:
             self.pwarning(f"selected subscription index not between 0 and {number_of_subscriptions - 1}")
         else:
-            self.poutput(orchestrator_shell.subscripition.subscription_select(args.index))
+            self.poutput(orchestrator.shell.subscripition.subscription_select(args.index))
 
     def subscription_details(self, args: Namespace) -> None:
         """Details subcommand of subscription command."""
@@ -73,7 +73,7 @@ class OrchestratorShell(Cmd):
             self.pwarning("first select a subscription")
         else:
             self.poutput(
-                orchestrator_shell.subscripition.subscription_details(
+                orchestrator.shell.subscripition.subscription_details(
                     subscription_only=args.subscription_only, product_blocks_only=args.product_blocks_only
                 )
             )
@@ -102,7 +102,7 @@ class OrchestratorShell(Cmd):
                     return
                 if args.new_value.tzinfo is None:
                     args.new_value = args.new_value.astimezone()
-        orchestrator_shell.subscripition.subscription_update(args.field, args.new_value)
+        orchestrator.shell.subscripition.subscription_update(args.field, args.new_value)
 
     # subscription (sub)commands argument parsers
     s_parser = Cmd2ArgumentParser()
@@ -151,7 +151,7 @@ class OrchestratorShell(Cmd):
         if state.subscription_index is None:
             self.pwarning("first select a subscription")
         else:
-            self.poutput(orchestrator_shell.product_block.product_block_list())
+            self.poutput(orchestrator.shell.product_block.product_block_list())
 
     def product_block_select(self, args: Namespace) -> None:
         """Select subcommand of product_block command."""
@@ -160,7 +160,7 @@ class OrchestratorShell(Cmd):
         elif not 0 <= args.index < number_of_product_blocks:
             self.pwarning(f"selected product_block index not between 0 and {number_of_product_blocks - 1}")
         else:
-            self.poutput(orchestrator_shell.product_block.product_block_select(args.index))
+            self.poutput(orchestrator.shell.product_block.product_block_select(args.index))
 
     def product_block_details(self, args: Namespace) -> None:
         """Details subcommand of product_block command."""
@@ -168,7 +168,7 @@ class OrchestratorShell(Cmd):
             self.pwarning("first select a product_block")
         else:
             self.poutput(
-                orchestrator_shell.product_block.product_block_details(
+                orchestrator.shell.product_block.product_block_details(
                     product_block_only=args.product_block_only,
                     resource_types_only=args.resource_types_only,
                     depends_on_only=args.depends_on_only,
@@ -185,7 +185,7 @@ class OrchestratorShell(Cmd):
         elif not 0 <= args.index < number_of_depends_on:
             self.pwarning(f"selected product_block index not between 0 and {number_of_depends_on - 1}")
         else:
-            self.poutput(orchestrator_shell.product_block.product_block_depends_on(args.index))
+            self.poutput(orchestrator.shell.product_block.product_block_depends_on(args.index))
 
     def product_block_in_use_by(self, args: Namespace) -> None:
         """In_use_by subcommand of product_block command."""
@@ -196,7 +196,7 @@ class OrchestratorShell(Cmd):
         elif not 0 <= args.index < number_of_in_use_by:
             self.pwarning(f"selected product_block index not between 0 and {number_of_in_use_by - 1}")
         else:
-            self.poutput(orchestrator_shell.product_block.product_block_in_use_by(args.index))
+            self.poutput(orchestrator.shell.product_block.product_block_in_use_by(args.index))
 
     # product_block (sub)commands argument parsers
     pb_parser = Cmd2ArgumentParser()
@@ -234,7 +234,7 @@ class OrchestratorShell(Cmd):
         if state.product_block_index is None:
             self.pwarning("first select a product block")
         else:
-            self.poutput(orchestrator_shell.resource_type.resource_type_list())
+            self.poutput(orchestrator.shell.resource_type.resource_type_list())
 
     def resource_type_select(self, args: Namespace) -> None:
         """Select subcommand of resource_type command."""
@@ -243,21 +243,21 @@ class OrchestratorShell(Cmd):
         elif not 0 <= args.index < number_of_resource_types:
             self.pwarning(f"selected resource_type index not between 0 and {number_of_resource_types - 1}")
         else:
-            self.poutput(orchestrator_shell.resource_type.resource_type_select(args.index))
+            self.poutput(orchestrator.shell.resource_type.resource_type_select(args.index))
 
     def resource_type_details(self, _: Namespace) -> None:
         """Details subcommand of resource_type command."""
         if state.resource_type_index is None:
             self.pwarning("first select a resource_type")
         else:
-            self.poutput(orchestrator_shell.resource_type.resource_type_details())
+            self.poutput(orchestrator.shell.resource_type.resource_type_details())
 
     def resource_type_update(self, args: Namespace) -> None:
         """Update subcommand of resource_type command."""
         if state.resource_type_index is None:
             self.pwarning("first select a resource_type")
         else:
-            orchestrator_shell.resource_type.resource_type_update(args.new_value)
+            orchestrator.shell.resource_type.resource_type_update(args.new_value)
 
     # resource_type (sub)commands argument parsers
     rt_parser = Cmd2ArgumentParser()
@@ -313,11 +313,11 @@ class OrchestratorShell(Cmd):
     def process_list(self, _: Namespace) -> None:
         """List subcommand of process command."""
         self.pfeedback("INFO: Listing only the ten most recent processes. Use search to find more.")
-        self.poutput(orchestrator_shell.process.process_list())
+        self.poutput(orchestrator.shell.process.process_list())
 
     def process_search(self, args: Namespace) -> None:
         """Search subcommand of process command."""
-        self.ppaged(orchestrator_shell.process.process_search(args.regular_expression))
+        self.ppaged(orchestrator.shell.process.process_search(args.regular_expression))
 
     def process_select(self, args: Namespace) -> None:
         """Select subcommand of process command."""
@@ -329,14 +329,14 @@ class OrchestratorShell(Cmd):
         elif not 0 <= args.index < number_of_processes:
             self.pwarning(f"selected process index not between 0 and {number_of_processes - 1}")
         else:
-            self.poutput(orchestrator_shell.process.process_select(args.index))
+            self.poutput(orchestrator.shell.process.process_select(args.index))
 
     def process_detail(self, _: Namespace) -> None:
         """Details subcommand of process command."""
         if state.process_index is None:
             self.pwarning("first select a process")
         else:
-            self.poutput(orchestrator_shell.process.process_details())
+            self.poutput(orchestrator.shell.process.process_details())
 
     def process_leapfrog(self, _: Namespace) -> None:
         """Leapfrog subcommand of process command."""
@@ -346,7 +346,7 @@ class OrchestratorShell(Cmd):
         if state.selected_process.last_status not in RESUMABLE_STATUSES:
             self.pwarning("selected process is not resumable")
             return
-        self.poutput(orchestrator_shell.process.process_leapfrog())
+        self.poutput(orchestrator.shell.process.process_leapfrog())
 
     # process (sub)commands argument parsers
     process_parser = Cmd2ArgumentParser()

@@ -1,6 +1,6 @@
-# orchestrator_shell
+# `orchestrator_shell`
 
-The orchestrator_shell (WorkFlow Orchestrator Shell) is an interactive shell to navigate
+The `orchestrator_shell` (WorkFlow Orchestrator Shell) is an interactive shell to navigate
 through subscriptions, product blocks, resource types, and processes, and
 update subscriptions and resource types directly in the database. The use of the GNU
 Readline interface allows for command completion and history, as wel as command
@@ -10,7 +10,7 @@ For various reasons, it sometimes happens that incorrect information ends up in
 the WFO database. Those who know the database model can of course adjust this
 information directly in the database with self-made SQL queries. For those who
 prefer an easy way to navigate through the subscriptions, product blocks and
-resource types to adjust incorrect information, can use the orchestrator_shell.
+resource types to adjust incorrect information, can use the `orchestrator_shell`.
 
 ## Getting started
 
@@ -35,7 +35,7 @@ Only scalar resource types are supported. All non-scalar resource types are
 shown as `<unset or non-scalar>` while they can have a value in the database.
 Optional yet unset resource types can be assigned a value with the
 `resource_type  update` command, but do not try to update non-scalar resource
-types using the orchestrator_shell.
+types using the `orchestrator_shell`.
 
 ## Usage
 
