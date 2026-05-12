@@ -14,12 +14,12 @@
 import re
 from datetime import datetime
 
-from orchestrator.db import SubscriptionTable, db, transactional
+from orchestrator.core.db import SubscriptionTable, db, transactional
 from structlog import get_logger
 from tabulate import tabulate
 
-from orchestrator_shell.product_block import product_block_table
-from orchestrator_shell.state import sorted_subscriptions, state
+from orchestrator.shell.product_block import product_block_table
+from orchestrator.shell.state import sorted_subscriptions, state
 
 logger = get_logger(__name__)
 

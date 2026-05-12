@@ -13,13 +13,13 @@
 
 import re
 
-from orchestrator.db import ProcessStepTable, ProcessTable, db, transactional
-from orchestrator.workflow import ProcessStatus, StepStatus
+from orchestrator.core.db import ProcessStepTable, ProcessTable, db, transactional
+from orchestrator.core.workflow import ProcessStatus, StepStatus
 from sqlalchemy import select
 from structlog import get_logger
 from tabulate import tabulate
 
-from orchestrator_shell.state import sorted_processes, state
+from orchestrator.shell.state import sorted_processes, state
 
 logger = get_logger(__name__)
 

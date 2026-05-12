@@ -13,10 +13,10 @@
 
 
 import tabulate
-from orchestrator.db import SubscriptionInstanceValueTable, db, transactional
+from orchestrator.core.db import SubscriptionInstanceValueTable, db, transactional
 from structlog import get_logger
 
-from orchestrator_shell.state import sorted_resource_types, state
+from orchestrator.shell.state import sorted_resource_types, state
 
 logger = get_logger(__name__)
 tabulate.PRESERVE_WHITESPACE = True
