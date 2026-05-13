@@ -1,7 +1,7 @@
 [project]
 name = "orchestrator-shell"
 description = "Shell for interacting with a Workflow Orchestrator subscription database."
-version = "2.0.0"
+version = "2.0.1"
 authors = [
     { name = "SURF", email = "automation-beheer@surf.nl" },
     { name = "GÉANT", email = "goat@geant.org" }
