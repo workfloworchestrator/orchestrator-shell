@@ -73,8 +73,8 @@ def details_all(subscription: SubscriptionTable) -> list[tuple[str, str]]:
 
 
 def subscription_list() -> str:
-    """Add list of all subscriptions to the state and return this list tabulated and indexed."""
-    state.subscriptions = query_db()
+    """Add list of the ten most recent subscriptions to the state and return this list tabulated and indexed."""
+    state.subscriptions = query_db()[-10:]
     state.filtered_subscriptions = None
     return indexed_subscription_list(state.subscriptions)
 
