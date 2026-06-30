@@ -33,7 +33,7 @@ class OrchestratorShell(Cmd):
     intro = "Welcome to the WFO shell.\nType help or ? to list commands."
 
     def __init__(self) -> None:
-        """WFO shell initialisation."""
+        """WFO shell initialization."""
         super().__init__(
             persistent_history_file=str(settings.ORCHESTRATOR_SHELL_HISTFILE),
             persistent_history_length=settings.ORCHESTRATOR_SHELL_HISTFILE_SIZE,
@@ -49,11 +49,12 @@ class OrchestratorShell(Cmd):
     # subcommand functions for the subscription command
     def subscription_list(self, _: Namespace) -> None:
         """List subcommand of subscription command."""
-        self.ppaged(orchestrator.shell.subscripition.subscription_list())
+        self.pfeedback("INFO: Listing only the ten most recent subscriptions. Use search to find more.")
+        self.poutput(orchestrator.shell.subscripition.subscription_list())
 
     def subscription_search(self, args: Namespace) -> None:
         """Search subcommand of subscription command."""
-        self.ppaged(orchestrator.shell.subscripition.subscription_search(args.regular_expression))
+        self.poutput(orchestrator.shell.subscripition.subscription_search(args.regular_expression))
 
     def subscription_select(self, args: Namespace) -> None:
         """Select subcommand of subscription command."""
@@ -317,7 +318,7 @@ class OrchestratorShell(Cmd):
 
     def process_search(self, args: Namespace) -> None:
         """Search subcommand of process command."""
-        self.ppaged(orchestrator.shell.process.process_search(args.regular_expression))
+        self.poutput(orchestrator.shell.process.process_search(args.regular_expression))
 
     def process_select(self, args: Namespace) -> None:
         """Select subcommand of process command."""

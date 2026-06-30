@@ -12,6 +12,7 @@
 # limitations under the License.
 
 from dataclasses import dataclass, field
+from datetime import datetime
 
 from orchestrator.core.db import (
     ProcessTable,
@@ -150,8 +151,14 @@ def all_resource_types(product_block: SubscriptionInstanceTable) -> list[Subscri
 
 
 def sorted_subscriptions(subscriptions: list[SubscriptionTable]) -> list[SubscriptionTable]:
-    """Sort subscriptions on description."""
-    return sorted(subscriptions, key=lambda subscription: subscription.description)
+    """Sort subscriptions by start date.
+
+    If a subscription does not have a start date, it will be last.
+    """
+    return sorted(
+        subscriptions,
+        key=lambda subscription: str(subscription.start_date) if subscription.start_date else str(datetime.min),
+    )
 
 
 def sorted_processes(processes: list[ProcessTable]) -> list[ProcessTable]:
