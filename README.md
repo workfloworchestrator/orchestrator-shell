@@ -9,7 +9,7 @@ line editing and search.
 ## Getting started
 
 Installation documentation for Orchestrator Shell can be found on
-[the Workflow Orchestrator documentation website](https://workfloworchestrator.org/orchestrator-core/getting-started/orchestration-shell/).
+[the Workflow Orchestrator documentation website](https://workfloworchestrator.org/orchestrator-core/getting-started/orchestrator-shell/).
 
 ## Warning
 
