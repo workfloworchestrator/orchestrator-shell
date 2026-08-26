@@ -3,22 +3,13 @@
 The `orchestrator_shell` (WorkFlow Orchestrator Shell) is an interactive shell to navigate
 through subscriptions, product blocks, resource types, and processes, and
 update subscriptions and resource types directly in the database. The use of the GNU
-Readline interface allows for command completion and history, as wel as command
+Readline interface allows for command completion and history, as well as command
 line editing and search.
-
-For various reasons, it sometimes happens that incorrect information ends up in
-the WFO database. Those who know the database model can of course adjust this
-information directly in the database with self-made SQL queries. For those who
-prefer an easy way to navigate through the subscriptions, product blocks and
-resource types to adjust incorrect information, can use the `orchestrator_shell`.
 
 ## Getting started
 
-Make sure you have `uv` installed on your system. Then simply run:
-
-```shell
-uvx orchestrator-shell
-```
+Installation documentation for Orchestrator Shell can be found on
+[the Workflow Orchestrator documentation website](https://workfloworchestrator.org/orchestrator-core/getting-started/orchestration-shell/).
 
 ## Warning
 
@@ -26,10 +17,10 @@ The shell operates directly on the database, changes made are instantly
 committed to the database. While using the shell, try to avoid other write
 access to the database, or at least limit write access to the information you
 are touching. Also note that none of the information that is updated in the
-database is checked syntactically or in any other way, except for the insync,
-start_date and end_date subscription fields, these fields will not allow
-syntactically incorrect values.  Updating information in the database with
-unsupported values may brake things. Use this shell at your own risk.
+database is checked syntactically or in any other way, except for the `insync`,
+`start_date` and `end_date` subscription fields, these fields will not allow
+syntactically incorrect values. Updating information in the database with
+unsupported values may break things. Use this shell at your own risk.
 
 Only scalar resource types are supported. All non-scalar resource types are
 shown as `<unset or non-scalar>` while they can have a value in the database.
@@ -174,7 +165,7 @@ product block  Node                   d097cf20-9c4c-4ba8-9008-701841933a45
 #### Select a resource type to update its value
 
 Select a resource types on the currently selected product block to update its
-value.  New values are not syntactically checked. Any relation that this
+value. New values are not syntactically checked. Any relation that this
 resource type has with other information in the WFO database or any related
 external administration, should eventually match the new value to avoid
 unexpected results using the WFO.
