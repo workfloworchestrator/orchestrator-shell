@@ -72,6 +72,19 @@ def test_product_block_table_of_no_product_blocks_is_empty() -> None:
     assert product_block.product_block_table([]) == ""
 
 
+def test_product_block_table_of_blocks_without_resource_types() -> None:
+    """A product block that defines no resource types is still listed instead of raising ValueError."""
+    block = factories.product_block("Empty")
+    instance = factories.subscription_instance(block, "si-1")
+
+    table = product_block.product_block_table([instance])
+
+    lines = table.splitlines()
+    assert lines[0].startswith("0  name")
+    assert lines[0].rstrip().endswith("Empty")
+    assert lines[1].startswith("   resource types")
+
+
 def test_details_all_combines_every_section() -> None:
     """The full details contain the product block, resource types and relations."""
     _, _, port_instance = _node_and_port()

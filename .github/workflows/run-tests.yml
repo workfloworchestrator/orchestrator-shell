@@ -37,6 +37,6 @@ jobs:
         run: uv sync --locked --all-extras --dev
 
       - name: Test with pytest
-        # The floor is a few points below the measured coverage: close to the suite, but not so tight
-        # that a single unreached branch fails an unrelated dependency bump.
-        run: uv run --no-sync pytest --cov --cov-branch --cov-report=term-missing --cov-fail-under=75
+        # The coverage floor comes from [tool.coverage.report] fail_under in pyproject.toml, so a local
+        # `pytest --cov` enforces the same minimum as CI.
+        run: uv run --no-sync pytest --cov --cov-branch --cov-report=term-missing

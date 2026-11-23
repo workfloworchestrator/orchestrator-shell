@@ -120,6 +120,11 @@ addopts = ["--strict-markers", "--strict-config"]
 branch = true
 source = ["orchestrator/shell"]
 
+[tool.coverage.report]
+# One floor for local and CI runs. A few points below the measured coverage (about 77%): close to the
+# suite, but not so tight that a single unreached branch fails an unrelated dependency bump.
+fail_under = 75
+
 [tool.uv.build-backend]
 module-name = "orchestrator.shell"
 module-root = ""

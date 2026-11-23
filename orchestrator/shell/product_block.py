@@ -23,7 +23,9 @@ def product_block_table(product_blocks: list[SubscriptionInstanceTable]) -> str:
     """Return indexed table of product blocks."""
     if not product_blocks:
         return ""
-    max_rt_width = max(len(rt.resource_type.resource_type) for pb in product_blocks for rt in all_resource_types(pb))
+    max_rt_width = max(
+        (len(rt.resource_type.resource_type) for pb in product_blocks for rt in all_resource_types(pb)), default=0
+    )
     return tabulate(
         [
             [
