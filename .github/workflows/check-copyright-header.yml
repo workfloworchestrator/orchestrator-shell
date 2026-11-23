@@ -1,12 +1,12 @@
 name: Verify copyright year in modified files
 
+# Invoked indirectly from ci.yml; no push/pull_request trigger to avoid duplicate checks.
 on:
-  pull_request:
-  push:
-    branches: [ main ]
+  workflow_call:
 
 jobs:
   copyright-check:
+    name: Copyright headers
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -21,9 +21,15 @@ jobs:
 
           CURRENT_YEAR="$(date +%Y)"
 
-          # Determine base ref
+          # Determine base ref for the files this change touches
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             BASE_REF="origin/${{ github.base_ref }}"
+          elif [[ "${{ github.event_name }}" == "push" ]]; then
+            BASE_REF="${{ github.event.before }}"
+            # A new branch reports the null object as "before"; there is nothing to compare then.
+            if [[ "$BASE_REF" =~ ^0+$ ]] || ! git rev-parse --verify --quiet "$BASE_REF^{commit}" > /dev/null; then
+              BASE_REF="$(git rev-parse HEAD~1 2>/dev/null || git rev-list --max-parents=0 HEAD)"
+            fi
           else
             BASE_REF="$(git rev-parse HEAD~1)"
           fi

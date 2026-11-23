@@ -1,27 +1,9 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
-  ],
-  "packageRules": [
-    {
-      "matchManagers": ["uv"]
-    },
-    {
-      "matchPackageNames": ["python"],
-      "rangeStrategy": "widen",
-      "enabled": false
-    }
-  ],
-  "minimumReleaseAge": "3 days",
-  "internalChecksFilter": "strict",
-  "lockFileMaintenance": {
-    "enabled": true,
-    "schedule": ["before 3am on Wednesday"]
-  },
-  "schedule": [
-    "* 1-5 * * *"
-  ],
-  "timezone": "Europe/Amsterdam",
-  "updateNotScheduled": false
+    "local>workfloworchestrator/renovate-config",
+    "local>workfloworchestrator/renovate-config//languages/python",
+    "local>workfloworchestrator/renovate-config//projects/library",
+    "local>workfloworchestrator/renovate-config//extras/security-alerts"
+  ]
 }

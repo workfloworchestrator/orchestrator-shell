@@ -1,3 +1,6 @@
+# Posts a readable report of the uv.lock changes on a pull request. Informational only: it is not
+# part of the "CI result" gate (see ci.yml), so a report failure never blocks a merge.
+
 name: Generate uv.lock report
 
 on:
@@ -11,6 +14,7 @@ permissions:
 
 jobs:
   report:
+    name: uv.lock report (informational)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -20,4 +24,3 @@ jobs:
         with:
           output-format: "table"
           github-token: ${{ secrets.GITHUB_TOKEN }}
-

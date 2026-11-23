@@ -1,46 +1,39 @@
-# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+# Runs the Ruff check and format check and the type check on one Python version. They do not
+# depend on the interpreter, so they run once instead of once per version in the test matrix.
 
 name: Linting tests
 
+# Invoked indirectly from ci.yml; no push/pull_request trigger to avoid duplicate checks.
 on:
-  push:
-    branches: [ main ]
   workflow_call:
-  pull_request:
 
 env:
   UV_LOCKED: true  # Assert that the `uv.lock` will remain unchanged
 
 jobs:
-  build:
+  linting:
     name: Linting Tests
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ['3.11', '3.12', '3.13', '3.14']
-      fail-fast: false
 
     steps:
       - uses: actions/checkout@v7
 
-      - name: Install uv and set the python version
+      - name: Install uv and set the Python version
         uses: astral-sh/setup-uv@v10.3.0
         with:
-          # It is considered best practice to pin to a specific uv version.
+          # Pin to the version that generated uv.lock, so `--locked` cannot fail on a format bump.
           version: "0.13.3"
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.13"
+          enable-cache: true
 
       - name: Install the project
-        # --all-extras: [project.optional-dependencies]
-        # --dev: group 'dev' from [dependency-groups]
-        run: uv sync --all-extras --dev
+        run: uv sync --locked --all-extras --dev
+
+      - name: Check with ruff
+        run: uv run --no-sync ruff check
+
+      - name: Check formatting with ruff
+        run: uv run --no-sync ruff format --check
 
       - name: Check with ty
-        run: uv run ty check
-
-      - name: Cache pre-commit hooks and environments
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/pre-commit
-          key: ${{ runner.os }}-pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+        run: uv run --no-sync ty check
