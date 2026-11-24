@@ -108,6 +108,22 @@ max-complexity = 7
 
 [tool.uv]
 index-url = "https://pypi.org/simple"
+# Cooldown: don't resolve versions published in the last 3 days (supply-chain protection).
+# Keep in sync with minimumReleaseAge in renovate.json.
+exclude-newer = "3 days"
+
+[tool.pytest.ini_options]
+testpaths = ["test"]
+addopts = ["--strict-markers", "--strict-config"]
+
+[tool.coverage.run]
+branch = true
+source = ["orchestrator/shell"]
+
+[tool.coverage.report]
+# One floor for local and CI runs. A few points below the measured coverage (about 77%): close to the
+# suite, but not so tight that a single unreached branch fails an unrelated dependency bump.
+fail_under = 75
 
 [tool.uv.build-backend]
 module-name = "orchestrator.shell"
@@ -116,6 +132,8 @@ module-root = ""
 [dependency-groups]
 dev = [
     "bumpversion>=0.6.0",
+    "pytest>=9.2.0",
+    "pytest-cov>=7.1.0",
     "ruff>=0.15.10",
     "ty>=0.0.31",
     "types-tabulate>=0.10.0.20260408",

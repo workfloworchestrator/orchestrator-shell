@@ -1,0 +1,40 @@
+name: CI
+
+# Single PR/push entry point for CI.
+# For PRs the final 'CI result' job must pass in order to merge: make it the required check in the
+# branch ruleset (see the shared renovate-config documentation).
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  linting-tests:
+    name: Linting tests
+    uses: ./.github/workflows/run-linting-tests.yml
+
+  unit-tests:
+    name: Unit tests
+    uses: ./.github/workflows/run-tests.yml
+
+  copyright-check:
+    name: Copyright headers
+    uses: ./.github/workflows/check-copyright-header.yml
+
+  gate:
+    name: CI result
+    needs:
+      - linting-tests
+      - unit-tests
+      - copyright-check
+    runs-on: ubuntu-slim
+    if: always()  # also report when a needed job failed or was cancelled
+    steps:
+      - name: Decide whether the needed jobs succeeded or failed
+        uses: re-actors/alls-green@b5b5b37504aa4183270bd3d855c52a67f212be35 # v1.3.0
+        with:
+          jobs: ${{ toJSON(needs) }}

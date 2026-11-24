@@ -1,0 +1,42 @@
+# Runs the test suite on every supported Python version.
+
+name: Unit tests
+
+# Invoked indirectly from ci.yml; no push/pull_request trigger to avoid duplicate checks.
+on:
+  workflow_call:
+
+env:
+  UV_LOCKED: true  # Assert that the `uv.lock` will remain unchanged
+
+jobs:
+  build:
+    name: "Unit tests (Python ${{ matrix.python-version }})"
+    runs-on: ubuntu-latest
+    strategy:
+      # Managed by hand together with requires-python in pyproject.toml; the shared Renovate preset
+      # does not bump either.
+      matrix:
+        python-version: ['3.11', '3.12', '3.13', '3.14']
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install uv and set the Python version
+        uses: astral-sh/setup-uv@v10.3.0
+        with:
+          # Pin to the version that generated uv.lock, so `--locked` cannot fail on a format bump.
+          version: "0.13.3"
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
+
+      - name: Install the project
+        # --all-extras: [project.optional-dependencies]
+        # --dev: group 'dev' from [dependency-groups], which carries pytest
+        run: uv sync --locked --all-extras --dev
+
+      - name: Test with pytest
+        # The coverage floor comes from [tool.coverage.report] fail_under in pyproject.toml, so a local
+        # `pytest --cov` enforces the same minimum as CI.
+        run: uv run --no-sync pytest --cov --cov-branch --cov-report=term-missing
